@@ -104,9 +104,7 @@ class UnicodeNormalizer {
 	public function setNormalizationForm($normalization) {
 		$availableNormalizations = $this->useIntlNormalizer
 			? array(\Normalizer::NONE, \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD)
-			: array(\Patchwork\PHP\Shim\Normalizer::NONE, \Patchwork\PHP\Shim\Normalizer::FORM_C,
-					\Patchwork\PHP\Shim\Normalizer::FORM_D, \Patchwork\PHP\Shim\Normalizer::FORM_KC,
-					\Patchwork\PHP\Shim\Normalizer::FORM_KD);
+			: array(\Patchwork\PHP\Shim\Normalizer::NONE, \Patchwork\PHP\Shim\Normalizer::FORM_C, \Patchwork\PHP\Shim\Normalizer::FORM_D, \Patchwork\PHP\Shim\Normalizer::FORM_KC, \Patchwork\PHP\Shim\Normalizer::FORM_KD);
 		if (!in_array($normalization, $availableNormalizations)) {
 			throw new \InvalidArgumentException(sprintf('Invalid unicode-normalization form given: "%s".', $normalization), 1398603947);
 		}
