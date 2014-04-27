@@ -147,8 +147,9 @@ class UnicodeNormalizer {
 	 * @return void
 	 */
 	public function setNormalizationForm($normalizationForm) {
-		$availableForms = $this->useIntlNormalizer ? array(\Normalizer::NONE, \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD)
-		                                           : array(self::NONE, self::FORM_C, self::FORM_D, self::FORM_KC, self::FORM_KD);
+		$availableForms = $this->useIntlNormalizer
+			? array(\Normalizer::NONE, \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD)
+			: array(self::NONE, self::FORM_C, self::FORM_D, self::FORM_KC, self::FORM_KD);
 		if (in_array($normalizationForm, $availableForms)) {
 			$this->normalizationForm = (integer) $normalizationForm;
 		}
