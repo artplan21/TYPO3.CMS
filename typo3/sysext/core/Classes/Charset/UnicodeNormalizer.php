@@ -43,42 +43,22 @@ class UnicodeNormalizer {
 	/**
 	 * Normalization Form C (NFC) - Canonical Decomposition followed by Canonical Composition
 	 */
-	const FORM_C = 4;
-
-	/**
-	 * Normalization Form C (NFC) - Canonical Decomposition followed by Canonical Composition
-	 */
-	const NFC = 4;
+	const FORM_C = 4, NFC = 4;
 
 	/**
 	 * Normalization Form KC (NFKC) - Compatibility Decomposition, followed by Canonical Composition
 	 */
-	const FORM_KC = 5;
-
-	/**
-	 * Normalization Form KC (NFKC) - Compatibility Decomposition, followed by Canonical Composition
-	 */
-	const NFKC = 5;
+	const FORM_KC = 5, NFKC = 5;
 
 	/**
 	 * Normalization Form D (NFD) - Canonical Decomposition
 	 */
-	const FORM_D = 2;
-
-	/**
-	 * Normalization Form D (NFD) - Canonical Decomposition
-	 */
-	const NFD = 2;
+	const FORM_D = 2, NFD = 2;
 
 	/**
 	 * Normalization Form KD (NFKD) - Compatibility Decomposition
 	 */
-	const FORM_KD = 3;
-
-	/**
-	 * Normalization Form KD (NFKD) - Compatibility Decomposition
-	 */
-	const NFKD = 3;
+	const FORM_KD = 3, NFKD = 3;
 
 	/**
 	 * A string indicating which unicode normalization form to use. Must be set to one of the following constants:
