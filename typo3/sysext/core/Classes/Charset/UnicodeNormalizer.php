@@ -152,7 +152,7 @@ class UnicodeNormalizer {
 		if (in_array($normalizationForm, $normalizationForms)) {
 			$this->normalizationForm = (integer) $normalizationForm;
 		}
-		throw new \InvalidArgumentException(sprintf('Unknown normalization form constant “%s”.', $normalizationForm), 1398603947);
+		throw new \InvalidArgumentException(sprintf('Unknown unicode normalization form constant: "%s".', $normalizationForm), 1398603947);
 	}
 
 	/**
