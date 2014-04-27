@@ -27,7 +27,7 @@ namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Charset conversion feature
+ * Unicode normalization feature
  */
 class UnicodeNormalizationFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
 
