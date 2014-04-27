@@ -48,14 +48,14 @@ class UnicodeNormalizer {
 	 *
 	 * @var boolean
 	 */
-	protected $useIntlNormalizer = NULL;
+	protected $useIntlExtension = NULL;
 
 	/**
 	 * @param integer $normalization Set the default normalization form to one of the available constants; \Normalizer::NONE is default.
 	 * @see http://www.php.net/manual/en/class.normalizer.php
 	 */
 	public function __construct($normalization = NULL) {
-		$this->useIntlNormalizer = (boolean) ($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] === 'intl');
+		$this->useIntlExtension = (boolean) ($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] === 'intl');
 		$this->setNormalizationForm($normalization ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization']);
 	}
 
@@ -69,7 +69,7 @@ class UnicodeNormalizer {
 	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
 	public function isNormalized($input, $normalization = NULL) {
-		if ($this->useIntlNormalizer) {
+		if ($this->useIntlExtension) {
 			return \Normalizer::isNormalized($input, $normalization ?: $this->normalization);
 		}
 		return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, $normalization ?: $this->normalization);
@@ -85,7 +85,7 @@ class UnicodeNormalizer {
 	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
 	public function normalize($input, $normalization = NULL) {
-		if ($this->useIntlNormalizer) {
+		if ($this->useIntlExtension) {
 			return \Normalizer::normalize($input, $normalization ?: $this->normalization);
 		}
 		return \Patchwork\PHP\Shim\Normalizer::normalize($input, $normalization ?: $this->normalization);
