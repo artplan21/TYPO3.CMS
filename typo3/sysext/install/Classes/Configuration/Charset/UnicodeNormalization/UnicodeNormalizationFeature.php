@@ -41,6 +41,6 @@ class UnicodeNormalizationFeature extends Configuration\AbstractFeature implemen
 	 */
 	protected $presetRegistry = array(
 		'TYPO3\\CMS\\Install\\Configuration\\Charset\\UnicodeNormalization\\IntlNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Charset\\UnicodeNormalization\\CoreNormalizerPreset',
+		'TYPO3\\CMS\\Install\\Configuration\\Charset\\UnicodeNormalization\\PatchworkNormalizerPreset',
 	);
 }

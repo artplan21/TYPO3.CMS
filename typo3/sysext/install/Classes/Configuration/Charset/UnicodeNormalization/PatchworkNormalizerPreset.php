@@ -29,12 +29,12 @@ use TYPO3\CMS\Install\Configuration;
 /**
  * Internal core unicode charset normalizer preset
  */
-class CoreNormalizerPreset extends Configuration\AbstractPreset {
+class PatchworkNormalizerPreset extends Configuration\AbstractPreset {
 
 	/**
 	 * @var string Name of preset
 	 */
-	protected $name = 'CoreNormalizer';
+	protected $name = 'PatchworkNormalizer';
 
 	/**
 	 * @var integer Priority of preset
@@ -46,7 +46,7 @@ class CoreNormalizerPreset extends Configuration\AbstractPreset {
 	 */
 	protected $configurationValues = array(
 		'SYS/unicodeNormalization' => '1',
-		'SYS/unicodeNormalizer' => '',
+		'SYS/unicodeNormalizer' => 'patchwork',
 	);
 
 	/**
