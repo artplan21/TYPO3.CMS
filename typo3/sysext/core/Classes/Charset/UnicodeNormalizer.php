@@ -56,11 +56,7 @@ class UnicodeNormalizer {
 	 */
 	public function __construct($normalization = NULL) {
 		$this->useIntlNormalizer = (boolean) ($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] === 'intl');
-
-		if ($normalization === NULL) {
-			$normalization = $this->useIntlNormalizer ? \Normalizer::NONE : self::NONE;
-		}
-		$this->setNormalizationForm($normalization);
+		$this->setNormalizationForm($normalization ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization']);
 	}
 
 	/**
