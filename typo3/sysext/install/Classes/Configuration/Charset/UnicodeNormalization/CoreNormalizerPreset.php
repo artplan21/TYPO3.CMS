@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\Charset;
+namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
 
 /***************************************************************
  *  Copyright notice
