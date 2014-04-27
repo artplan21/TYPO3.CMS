@@ -29,7 +29,7 @@ use TYPO3\CMS\Install\Configuration;
 /**
  * Internal core unicode charset normalizer preset
  */
-class CoreInternalPreset extends Configuration\AbstractPreset {
+class CoreNormalizerPreset extends Configuration\AbstractPreset {
 
 	/**
 	 * @var string Name of preset
