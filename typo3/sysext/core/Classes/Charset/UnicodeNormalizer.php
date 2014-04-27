@@ -36,37 +36,12 @@ namespace TYPO3\CMS\Core\Charset;
 class UnicodeNormalizer {
 
 	/**
-	 * No decomposition/composition
-	 */
-	const NONE = 1;
-
-	/**
-	 * Normalization Form C (NFC) - Canonical Decomposition followed by Canonical Composition
-	 */
-	const FORM_C = 4, NFC = 4;
-
-	/**
-	 * Normalization Form KC (NFKC) - Compatibility Decomposition, followed by Canonical Composition
-	 */
-	const FORM_KC = 5, NFKC = 5;
-
-	/**
-	 * Normalization Form D (NFD) - Canonical Decomposition
-	 */
-	const FORM_D = 2, NFD = 2;
-
-	/**
-	 * Normalization Form KD (NFKD) - Compatibility Decomposition
-	 */
-	const FORM_KD = 3, NFKD = 3;
-
-	/**
 	 * A string indicating which unicode normalization form to use. Must be set to one of the following constants:
 	 * \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD or \Normalizer::NONE
 	 *
 	 * @var integer
 	 */
-	protected $normalizationForm = NULL;
+	protected $normalization = NULL;
 
 	/**
 	 * A falg indicating which normalizer to use - TRUE means use intl's Normalizer, FALSE or NULL
@@ -76,16 +51,16 @@ class UnicodeNormalizer {
 	protected $useIntlNormalizer = NULL;
 
 	/**
-	 * @param integer $normalizationForm Set the default normalization form to one of the available constants; \Normalizer::NONE is default.
+	 * @param integer $normalization Set the default normalization form to one of the available constants; \Normalizer::NONE is default.
 	 * @see http://www.php.net/manual/en/class.normalizer.php
 	 */
-	public function __construct($normalizationForm = NULL) {
+	public function __construct($normalization = NULL) {
 		$this->useIntlNormalizer = (boolean) ($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] === 'intl');
 
-		if ($normalizationForm === NULL) {
-			$normalizationForm = $this->useIntlNormalizer ? \Normalizer::NONE : self::NONE;
+		if ($normalization === NULL) {
+			$normalization = $this->useIntlNormalizer ? \Normalizer::NONE : self::NONE;
 		}
-		$this->setNormalizationForm($normalizationForm);
+		$this->setNormalizationForm($normalization);
 	}
 
 	/**
@@ -93,15 +68,15 @@ class UnicodeNormalizer {
 	 *
 	 * @link http://www.php.net/manual/en/normalizer.isnormalized.php
 	 * @param string $input The string to check.
-	 * @param integer $normalizationForm An optional normalization form to check against, overriding the default; see constructor.
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return boolean TRUE if normalized, FALSE otherwise or if an error occurred.
 	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
-	public function isNormalized($input, $normalizationForm = NULL) {
+	public function isNormalized($input, $normalization = NULL) {
 		if ($this->useIntlNormalizer) {
-			return \Normalizer::isNormalized($input, $normalizationForm ?: $this->normalizationForm);
+			return \Normalizer::isNormalized($input, $normalization ?: $this->normalization);
 		}
-		throw new Exception\NotImplementedException();
+		return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, $normalization ?: $this->normalization);
 	}
 
 	/**
@@ -109,31 +84,33 @@ class UnicodeNormalizer {
 	 *
 	 * @link http://www.php.net/manual/en/normalizer.normalize.php
 	 * @param string $input The string to normalize.
-	 * @param integer $normalizationForm An optional normalization form to check against, overriding the default; see constructor.
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return string|NULL The normalized string or NULL if an error occurred.
 	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
-	public function normalize($input, $normalizationForm = NULL) {
+	public function normalize($input, $normalization = NULL) {
 		if ($this->useIntlNormalizer) {
-			return \Normalizer::normalize($input, $normalizationForm ?: $this->normalizationForm);
+			return \Normalizer::normalize($input, $normalization ?: $this->normalization);
 		}
-		throw new Exception\NotImplementedException();
+		return \Patchwork\PHP\Shim\Normalizer::normalize($input, $normalization ?: $this->normalization);
 	}
 
 	/**
 	 * Set the current normalization form constant.
 	 *
-	 * @param integer $normalizationForm
+	 * @param integer $normalization
 	 * @return void
 	 */
-	public function setNormalizationForm($normalizationForm) {
-		$availableForms = $this->useIntlNormalizer
+	public function setNormalizationForm($normalization) {
+		$availableNormalizations = $this->useIntlNormalizer
 			? array(\Normalizer::NONE, \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD)
-			: array(self::NONE, self::FORM_C, self::FORM_D, self::FORM_KC, self::FORM_KD);
-		if (in_array($normalizationForm, $availableForms)) {
-			$this->normalizationForm = (integer) $normalizationForm;
+			: array(\Patchwork\PHP\Shim\Normalizer::NONE, \Patchwork\PHP\Shim\Normalizer::FORM_C,
+					\Patchwork\PHP\Shim\Normalizer::FORM_D, \Patchwork\PHP\Shim\Normalizer::FORM_KC,
+					\Patchwork\PHP\Shim\Normalizer::FORM_KD);
+		if (!in_array($normalization, $availableNormalizations)) {
+			throw new \InvalidArgumentException(sprintf('Invalid unicode-normalization form given: "%s".', $normalization), 1398603947);
 		}
-		throw new \InvalidArgumentException(sprintf('Unknown unicode normalization form constant: "%s".', $normalizationForm), 1398603947);
+		$this->normalization = (integer) $normalization;
 	}
 
 	/**
@@ -142,6 +119,6 @@ class UnicodeNormalizer {
 	 * @return integer
 	 */
 	public function getNormalizationForm() {
-		return $this->normalizationForm;
+		return $this->normalization;
 	}
 }

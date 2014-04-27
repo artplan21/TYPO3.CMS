@@ -13,6 +13,7 @@ return array(
 	'transferdata' => PATH_typo3 . 'show_item.php',
 	'Psr\\Log\\LoggerInterface' => PATH_typo3 . 'contrib/Psr/Log/LoggerInterface.php',
 	'Psr\\Log\\InvalidArgumentException' => PATH_typo3 . 'contrib/Psr/Log/InvalidArgumentException.php',
+	'Patchwork\\PHP\\Shim\\Normalizer' => PATH_typo3 . 'contrib/Patchwork-UTF8/patchwork/utf8/class/Patchwork/PHP/Shim/Normalizer.php',
 	'typo3\flow\package\documentation\format' => $flowClassesPath . 'TYPO3/Flow/Package/Documentation/Format.php',
 	'typo3\flow\package\documentation' => $flowClassesPath . 'TYPO3/Flow/Package/Documentation.php',
 	'typo3\flow\package\exception\corruptpackageexception' => $flowClassesPath . 'TYPO3/Flow/Package/Exception/CorruptPackageException.php',
