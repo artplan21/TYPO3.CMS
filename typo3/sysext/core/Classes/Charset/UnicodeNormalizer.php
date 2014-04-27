@@ -101,7 +101,7 @@ class UnicodeNormalizer {
 		if (!in_array($normalization, range(1, 5))) {
 			throw new \InvalidArgumentException(sprintf('Invalid unicode-normalization form given: "%s".', $normalization), 1398603947);
 		}
-		$this->normalization = (integer) $normalization;
+		$this->normalization = (int) $normalization;
 	}
 
 	/**
