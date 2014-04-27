@@ -25,7 +25,9 @@ namespace TYPO3\CMS\Core\Charset;
  ***************************************************************/
 
 /**
- * Class for normalizing unicode. This implementation is a simple facade to “php-intl” extension's “Normalizer”-class.
+ * Class for normalizing unicode. Depending on what has been configured in the install-tool, this implementation is a
+ * simple facade, either to “php-intl” extension's “Normalizer”-class or to the homonymous fallback shim-class from the
+ * faboulus “Patchwork-UTF8” project.
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  * @see http://forge.typo3.org/issues/57695
