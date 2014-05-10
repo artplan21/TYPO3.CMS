@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
+namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 
 /***************************************************************
  *  Copyright notice
@@ -27,7 +27,7 @@ namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Intl unicode charset normalizer preset
+ * PHP's “intl”-extension unicode charset normalizer preset
  */
 class IntlNormalizerPreset extends Configuration\AbstractPreset {
 
@@ -45,7 +45,6 @@ class IntlNormalizerPreset extends Configuration\AbstractPreset {
 	 * @var array Configuration values handled by this preset
 	 */
 	protected $configurationValues = array(
-		'SYS/unicodeNormalization' => '1',
 		'SYS/unicodeNormalizer' => 'intl',
 	);
 

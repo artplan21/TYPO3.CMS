@@ -1,10 +1,10 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
+namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2014 Stephan Jorek <stephan.jorek@artplan21.de>
+ *  (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,34 +27,14 @@ namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Internal core unicode charset normalizer preset
+ * Custom normalizer preset is a fallback if no other preset fits
  */
-class PatchworkNormalizerPreset extends Configuration\AbstractPreset {
-
-	/**
-	 * @var string Name of preset
-	 */
-	protected $name = 'PatchworkNormalizer';
-
-	/**
-	 * @var integer Priority of preset
-	 */
-	protected $priority = 20;
+class CustomNormalizerPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
 
 	/**
 	 * @var array Configuration values handled by this preset
 	 */
 	protected $configurationValues = array(
-		'SYS/unicodeNormalization' => '1',
-		'SYS/unicodeNormalizer' => 'patchwork',
+		'SYS/unicodeNormalizer' => '',
 	);
-
-	/**
-	 * Internal core handling is always available
-	 *
-	 * @return boolean TRUE
-	 */
-	public function isAvailable() {
-		return TRUE;
-	}
 }

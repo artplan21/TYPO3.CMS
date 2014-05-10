@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
+namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 
 /***************************************************************
  *  Copyright notice
@@ -27,20 +27,37 @@ namespace TYPO3\CMS\Install\Configuration\Charset\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Unicode normalization feature
+ * Pure php-based unicode charset normalizer preset based upon the fabulous “Patchwork-UTF8” implementation
  */
-class UnicodeNormalizationFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
+class PatchworkNormalizerPreset extends Configuration\AbstractPreset {
 
 	/**
-	 * @var string Name of feature
+	 * @var string Name of preset
 	 */
-	protected $name = 'UnicodeNormalization';
+	protected $name = 'PatchworkNormalizer';
 
 	/**
-	 * @var array List of preset classes
+	 * @var integer Priority of preset
 	 */
-	protected $presetRegistry = array(
-		'TYPO3\\CMS\\Install\\Configuration\\Charset\\UnicodeNormalization\\IntlNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Charset\\UnicodeNormalization\\PatchworkNormalizerPreset',
+	protected $priority = 20;
+
+	/**
+	 * @var array Configuration values handled by this preset
+	 */
+	protected $configurationValues = array(
+		'SYS/unicodeNormalizer' => 'patchwork',
 	);
+
+	/**
+	 * Should be always available, but we really want to make it sure …
+	 *
+	 * @return boolean TRUE
+	 */
+	public function isAvailable() {
+		$result = FALSE;
+		if (class_exists('\\Patchwork\\PHP\\Shim\\Normalizer')) {
+			$result = TRUE;
+		}
+		return $result;
+	}
 }
