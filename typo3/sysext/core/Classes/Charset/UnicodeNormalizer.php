@@ -110,8 +110,8 @@ class UnicodeNormalizer {
 				return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
 				break;
 		}
-		// In all other cases return as is …
-		return $input;
+		// In all other cases return always TRUE …
+		return TRUE;
 	}
 
 	/**
