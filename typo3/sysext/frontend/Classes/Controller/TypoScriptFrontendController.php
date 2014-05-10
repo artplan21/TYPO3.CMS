@@ -4853,6 +4853,20 @@ if (version == "n3") {
 		if ($this->renderCharset != $this->metaCharset) {
 			$content = $this->csConvObj->conv($content, $this->renderCharset, $this->metaCharset, TRUE);
 		}
+		$unicodeNormalization = (int) $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
+		if ($this->metaCharset == 'utf8' && 1 < $unicodeNormalization) {
+			// Enforce unicode-normalization form, ie. NFC as recommended by http://www.w3.org/TR/charmod-norm/ for html5.
+			// See \TYPO3\CMS\Core\Charset\UnicodeNormalizer implementation for further details and links.
+			/** @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer */
+			$unicodeNormalizer = GeneralUtility::makeInstance(
+				'TYPO3\\CMS\\Core\\Charset\UnicodeNormalizer', $unicodeNormalization,
+				$this->TYPO3_CONF_VARS['SYS']['unicodeNormalizer']
+			);
+			// Check normalization state before actually normalizing, as this might get expensive.
+			if (!$unicodeNormalizer->isNormalized($content)) {
+				$content = $unicodeNormalizer->normalize($content);
+			}
+		}
 		return $content;
 	}
 
