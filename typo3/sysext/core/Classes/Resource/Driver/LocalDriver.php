@@ -71,6 +71,11 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 	 */
 	protected $charsetConversion;
 
+	/**
+	 * @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 */
+	protected $unicodeNormalizer;
+
 	/** @var array */
 	protected $mappingFolderNameToRole = array(
 		'_recycler_' => FolderInterface::ROLE_RECYCLER,
@@ -313,6 +318,10 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
 			// Allow ".", "-", 0-9, a-z, A-Z and everything beyond U+C0 (latin capital letter a with grave)
 			$cleanFileName = preg_replace('/[' . self::UNSAFE_FILENAME_CHARACTER_EXPRESSION . ']/u', '_', trim($fileName));
+			$unicodeNormalization = $GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem'];
+			if (1 < $unicodeNormalization && !$this->getUnicodeNormalizer()->isNormalized($cleanFileName, $unicodeNormalization)) {
+				$cleanFileName = $this->getUnicodeNormalizer()->normalize($cleanFileName, $unicodeNormalization);
+			}
 		} else {
 			// Define character set
 			if (!$charset) {
@@ -1208,6 +1217,19 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 			}
 		}
 		return $this->charsetConversion;
+	}
+
+	/**
+	 * Gets the unicode-normalization object.
+	 *
+	 * @return \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 */
+	protected function getUnicodeNormalizer() {
+		if (!isset($this->unicodeNormalizer)) {
+			// The object may not exist yet, so we need to create it now.
+			$this->unicodeNormalizer = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizer');
+		}
+		return $this->unicodeNormalizer;
 	}
 
 	/**
