@@ -37,16 +37,43 @@ namespace TYPO3\CMS\Core\Charset;
  */
 class UnicodeNormalizer {
 
+	const
+
 	/**
-	 * A string indicating which unicode normalization form to use. Must be set to one of the following constants:
-	 * \Normalizer::FORM_C, \Normalizer::FORM_D, \Normalizer::FORM_KC, \Normalizer::FORM_KD or \Normalizer::NONE
+	 * No decomposition/composition
+	 */
+	NONE = 1,
+
+	/**
+	 * Normalization Form D (NFD) - Canonical Decomposition
+	 */
+	FORM_D  = 2, NFD  = 2,
+
+	/**
+	 * Normalization Form KD (NFKD) - Compatibility Decomposition
+	 */
+	FORM_KD = 3, NFKD = 3,
+
+	/**
+	 * Normalization Form C (NFC) - Canonical Decomposition followed by Canonical Composition
+	 */
+	FORM_C  = 4, NFC  = 4,
+
+	/**
+	 * Normalization Form KC (NFKC) - Compatibility Decomposition followed by Canonical Composition
+	 */
+	FORM_KC = 5, NFKC = 5;
+
+	/**
+	 * Indicates which unicode normalization form to use. Must be set to one of the constants from above. Defaults to NONE.
 	 *
 	 * @var integer
 	 */
-	protected $normalization = NULL;
+	protected $normalization = self::NONE;
 
 	/**
-	 * A falg indicating which normalizer to use - TRUE means use intl's Normalizer, FALSE or NULL
+	 * A flag indicating which normalizer to use - TRUE means use Normalizer from PHP's “intl”-extension,
+	 * anything else will fall back to pure PHP-code from the Patchwork project.
 	 *
 	 * @var boolean
 	 */
@@ -62,52 +89,51 @@ class UnicodeNormalizer {
 	}
 
 	/**
-	 * Checks if the provided integer is already in the specified or current default normalization form.
+	 * Checks if the provided $input is already in the specified or current default normalization form.
 	 *
 	 * @link http://www.php.net/manual/en/normalizer.isnormalized.php
 	 * @param string $input The string to check.
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return boolean TRUE if normalized, FALSE otherwise or if an error occurred.
-	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
 	public function isNormalized($input, $normalization = NULL) {
 		if ($this->useIntlExtension) {
-			return \Normalizer::isNormalized($input, $normalization ?: $this->normalization);
+			return \Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
 		}
-		return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, $normalization ?: $this->normalization);
+		return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
 	}
 
 	/**
-	 * Normalizes the input provided and returns the normalized string.
+	 * Normalizes the $input provided to the given $normalization or the default one, and returns the normalized string.
 	 *
 	 * @link http://www.php.net/manual/en/normalizer.normalize.php
 	 * @param string $input The string to normalize.
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return string|NULL The normalized string or NULL if an error occurred.
-	 * @throws \TYPO3\CMS\Core\Charset\Exception\NotImplementedException
 	 */
 	public function normalize($input, $normalization = NULL) {
 		if ($this->useIntlExtension) {
-			return \Normalizer::normalize($input, $normalization ?: $this->normalization);
+			return \Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
 		}
-		return \Patchwork\PHP\Shim\Normalizer::normalize($input, $normalization ?: $this->normalization);
+		return \Patchwork\PHP\Shim\Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
 	}
 
 	/**
-	 * Set the current normalization form constant.
+	 * Set the current normalization-form constant to the given $normalization. Also see constructor.
 	 *
 	 * @param integer $normalization
 	 * @return void
+	 * @throws \InvalidArgumentException
 	 */
 	public function setNormalizationForm($normalization) {
 		if (!in_array($normalization, range(1, 5))) {
 			throw new \InvalidArgumentException(sprintf('Invalid unicode-normalization form given: %s.', $normalization), 1398603947);
 		}
-		$this->normalization = (int) $normalization;
+		$this->normalization = $normalization;
 	}
 
 	/**
-	 * Retrieve the current normalization form constant.
+	 * Retrieve the current normalization-form constant.
 	 *
 	 * @return integer
 	 */
