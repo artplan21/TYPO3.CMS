@@ -56,11 +56,11 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 		$ascii_dejavu = 'dejavu';
 
-		$this->assertFalse($this->fixture->isNormalized($dejavu, UnicodeNormalizer::NONE));
-		$this->assertTrue($this->fixture->isNormalized($dejavu, UnicodeNormalizer::FORM_D));
-		$this->assertTrue($this->fixture->isNormalized($dejavu, UnicodeNormalizer::FORM_KD));
-		$this->assertTrue($this->fixture->isNormalized($dejavu, UnicodeNormalizer::FORM_C));
-		$this->assertTrue($this->fixture->isNormalized($dejavu, UnicodeNormalizer::FORM_KC));
+		$this->assertFalse($this->fixture->isNormalized($ascii_dejavu, UnicodeNormalizer::NONE));
+		$this->assertTrue($this->fixture->isNormalized($ascii_dejavu, UnicodeNormalizer::FORM_D));
+		$this->assertTrue($this->fixture->isNormalized($ascii_dejavu, UnicodeNormalizer::FORM_KD));
+		$this->assertTrue($this->fixture->isNormalized($ascii_dejavu, UnicodeNormalizer::FORM_C));
+		$this->assertTrue($this->fixture->isNormalized($ascii_dejavu, UnicodeNormalizer::FORM_KC));
 	}
 
 	/**
