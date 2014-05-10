@@ -31,7 +31,7 @@ namespace TYPO3\CMS\Extensionmanager\Controller;
  *
  * @author Susanne Moog <typo3@susannemoog.de>
  */
-class ListController extends \TYPO3\CMS\Extensionmanager\Controller\AbstractController {
+class ListController extends AbstractController {
 
 	/**
 	 * @var \TYPO3\CMS\Extensionmanager\Domain\Repository\ExtensionRepository
@@ -95,20 +95,24 @@ class ListController extends \TYPO3\CMS\Extensionmanager\Controller\AbstractCont
 	 * @return void
 	 */
 	public function distributionsAction() {
-		// check if a TER update has been done at all, if not, fetch it directly
-		/** @var $repositoryHelper \TYPO3\CMS\Extensionmanager\Utility\Repository\Helper */
-		$repositoryHelper = $this->objectManager->get('TYPO3\\CMS\\Extensionmanager\\Utility\\Repository\\Helper');
-		// repository needs an update, but not because of the extension hash has changed
-		if ($repositoryHelper->isExtListUpdateNecessary() > 0 && ($repositoryHelper->isExtListUpdateNecessary() & $repositoryHelper::PROBLEM_EXTENSION_HASH_CHANGED) === 0) {
-			$repositoryHelper->fetchExtListFile();
-			$repositoryHelper->updateExtList();
+		$importExportInstalled = \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('impexp');
+		if ($importExportInstalled) {
+			// check if a TER update has been done at all, if not, fetch it directly
+			/** @var $repositoryHelper \TYPO3\CMS\Extensionmanager\Utility\Repository\Helper */
+			$repositoryHelper = $this->objectManager->get('TYPO3\\CMS\\Extensionmanager\\Utility\\Repository\\Helper');
+			// repository needs an update, but not because of the extension hash has changed
+			if ($repositoryHelper->isExtListUpdateNecessary() > 0 && ($repositoryHelper->isExtListUpdateNecessary() & $repositoryHelper::PROBLEM_EXTENSION_HASH_CHANGED) === 0) {
+				$repositoryHelper->fetchExtListFile();
+				$repositoryHelper->updateExtList();
+			}
+
+			$officialDistributions = $this->extensionRepository->findAllOfficialDistributions();
+			$this->view->assign('officialDistributions', $officialDistributions);
+
+			$communityDistributions = $this->extensionRepository->findAllCommunityDistributions();
+			$this->view->assign('communityDistributions', $communityDistributions);
 		}
-
-		$officialDistributions = $this->extensionRepository->findAllOfficialDistributions();
-		$this->view->assign('officialDistributions', $officialDistributions);
-
-		$communityDistributions = $this->extensionRepository->findAllCommunityDistributions();
-		$this->view->assign('communityDistributions', $communityDistributions);
+		$this->view->assign('enableDistributionsView', $importExportInstalled);
 	}
 
 	/**

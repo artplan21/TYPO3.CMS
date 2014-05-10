@@ -1513,8 +1513,9 @@ class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\AbstractU
 				$this->dataLists['file_permissions'] .= ',' . $row['file_permissions'];
 				// Setting workspace permissions:
 				$this->dataLists['workspace_perms'] |= $row['workspace_perms'];
-				// If this function is processing the users OWN group-list (not subgroups) AND if the ->firstMainGroup is not set, then the ->firstMainGroup will be set.
-				if ((string)$idList !== '' && !$this->firstMainGroup) {
+				// If this function is processing the users OWN group-list (not subgroups) AND
+				// if the ->firstMainGroup is not set, then the ->firstMainGroup will be set.
+				if ($idList === '' && !$this->firstMainGroup) {
 					$this->firstMainGroup = $uid;
 				}
 			}
@@ -1861,6 +1862,33 @@ class BackendUserAuthentication extends \TYPO3\CMS\Core\Authentication\AbstractU
 		} else {
 			return FALSE;
 		}
+	}
+
+	/**
+	* Returns a \TYPO3\CMS\Core\Resource\Folder object that could be used for uploading
+	* temporary files in user context. The folder _temp_ below the default upload folder
+	* of the user is used.
+	*
+	* @return NULL|\TYPO3\CMS\Core\Resource\Folder
+	* @see \TYPO3\CMS\Core\Authentication\BackendUserAuthentication::getDefaultUploadFolder();
+	*/
+	public function getDefaultUploadTemporaryFolder() {
+		$defaultTemporaryFolder = NULL;
+		$defaultFolder = $this->getDefaultUploadFolder();
+
+		if ($defaultFolder !== FALSE) {
+			$tempFolderName = '_temp_';
+			$createFolder = !$defaultFolder->hasFolder($tempFolderName);
+			if ($createFolder === TRUE) {
+				try {
+					$defaultTemporaryFolder = $defaultFolder->createFolder($tempFolderName);
+				} catch (\TYPO3\CMS\Core\Resource\Exception $folderAccessException) {}
+			} else {
+				$defaultTemporaryFolder = $defaultFolder->getSubfolder($tempFolderName);
+			}
+		}
+
+		return $defaultTemporaryFolder;
 	}
 
 	/**

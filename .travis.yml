@@ -4,6 +4,7 @@ php:
   - 5.3
   - 5.4
   - 5.5
+  - 5.6
 
 env:
   - DB=mysql
@@ -20,13 +21,13 @@ notifications:
 
 before_script:
   - >
-    if [[ "$TRAVIS_PHP_VERSION" != "5.5" ]]; then
+    if [[ "$TRAVIS_PHP_VERSION" = "5.3" || "$TRAVIS_PHP_VERSION" = "5.4" ]]; then
         echo "extension = apc.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini;
         echo "apc.enable_cli=1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini;
         echo "apc.slam_defense=0" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini;
     fi
   - >
-    if [[ "$TRAVIS_PHP_VERSION" != "5.5" ]]; then
+    if [[ "$TRAVIS_PHP_VERSION" = "5.3" || "$TRAVIS_PHP_VERSION" = "5.4" ]]; then
         pecl install igbinary > /dev/null;
     fi
   - echo "extension = memcache.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
@@ -40,14 +41,14 @@ script:
   - >
     echo;
     echo "Running unit tests";
-    ./bin/phpunit -c typo3/sysext/core/Build/UnitTests.xml
+    ./bin/phpunit --colors -c typo3/sysext/core/Build/UnitTests.xml
   - >
     echo;
     export typo3DatabaseName="typo3";
     export typo3DatabaseHost="localhost";
     export typo3DatabaseUsername="root";
     export typo3DatabasePassword="";
-    grep directory typo3/sysext/core/Build/FunctionalTests.xml | awk '{print $1}' | sed 's%<directory>\(\.\./\)*\(typo3/sysext.*\)</directory>$%\2%g' | parallel --gnu 'echo; echo "Running functional {} tests"; ./bin/phpunit -c typo3/sysext/core/Build/FunctionalTests.xml {}'
+    find . -wholename '*typo3/sysext/*/Tests/Functional/*Test.php' | parallel --gnu 'echo; echo "Running functional test suite {}"; ./bin/phpunit --colors -c typo3/sysext/core/Build/FunctionalTests.xml {}'
   - >
     echo;
     echo "Running php lint";

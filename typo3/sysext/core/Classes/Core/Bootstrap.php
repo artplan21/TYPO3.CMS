@@ -103,7 +103,7 @@ class Bootstrap {
 		if (is_null(static::$instance)) {
 			require_once(__DIR__ . '/../Exception.php');
 			require_once(__DIR__ . '/ApplicationContext.php');
-			$applicationContext = trim(getenv('TYPO3_CONTEXT'), '"\' ') ? : 'Production';
+			$applicationContext = getenv('TYPO3_CONTEXT') ?: (getenv('REDIRECT_TYPO3_CONTEXT') ?: 'Production');
 			self::$instance = new static($applicationContext);
 			// Establish an alias for Flow/Package interoperability
 			class_alias(get_class(static::$instance), 'TYPO3\\Flow\\Core\\Bootstrap');
@@ -270,22 +270,14 @@ class Bootstrap {
 	}
 
 	/**
-	 * Reinitializes the class loader during clear cache actions
-	 * Beware! This is not public API and necessary for edge cases in the install tool
+	 * Unregister class loader
 	 *
-	 * @param string $packageManagerClassName
 	 * @return Bootstrap
+	 * @internal This is not a public API method, do not use in own extensions
 	 */
-	public function reinitializeClassLoaderAndCachesAndPackageManagement($packageManagerClassName = 'TYPO3\\CMS\\Core\\Package\\PackageManager') {
+	public function unregisterClassLoader() {
 		$currentClassLoader = $this->getEarlyInstance('TYPO3\\CMS\\Core\\Core\\ClassLoader');
 		spl_autoload_unregister(array($currentClassLoader, 'loadClass'));
-		\TYPO3\CMS\Core\Cache\Cache::flagCachingFrameworkForReinitialization();
-		$this
-			->initializeClassLoader()
-			->populateLocalConfiguration()
-			->initializeCachingFramework()
-			->initializeClassLoaderCaches()
-			->initializePackageManagement($packageManagerClassName);
 		return $this;
 	}
 

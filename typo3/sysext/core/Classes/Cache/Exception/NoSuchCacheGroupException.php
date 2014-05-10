@@ -1,10 +1,10 @@
 <?php
-namespace TYPO3\CMS\Core\Tests\Functional\Resource;
+namespace TYPO3\CMS\Core\Cache\Exception;
 
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2012-2013 Andreas Wolf <andreas.wolf@typo3.org>
+ *  (c) 2014 TYPO3 CMS Team
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -15,9 +15,6 @@ namespace TYPO3\CMS\Core\Tests\Functional\Resource;
  *
  *  The GNU General Public License can be found at
  *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
  *
  *  This script is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,16 +25,11 @@ namespace TYPO3\CMS\Core\Tests\Functional\Resource;
  ***************************************************************/
 
 /**
- * Basic functional test class for the File Abstraction Layer (FAL).
+ * A "No Such Cache Group" exception
  *
- * @author Andreas Wolf <andreas.wolf@typo3.org>
+ * @api
  */
-class BaseTestCase extends \TYPO3\CMS\Core\Tests\FunctionalTestCase {
-	public function getStorageObject() {
-		$this->initializeVfs();
-		$resourceFactory = new \TYPO3\CMS\Core\Resource\ResourceFactory();
-		return $resourceFactory->createStorageObject(array(
-			'driver' => 'Local'
-		), array('basePath' => $this->getMountRootUrl()));
-	}
+class NoSuchCacheGroupException extends \TYPO3\CMS\Core\Cache\Exception {
+
+
 }

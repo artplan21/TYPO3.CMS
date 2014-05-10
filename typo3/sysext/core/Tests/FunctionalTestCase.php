@@ -199,24 +199,6 @@ abstract class FunctionalTestCase extends BaseTestCase {
 	}
 
 	/**
-	 * Tear down destroys the instance and database.
-	 *
-	 * This method should be called with parent::tearDown() in your test cases!
-	 *
-	 * @throws Exception
-	 * @return void
-	 */
-	public function tearDown() {
-		if (!($this->bootstrapUtility instanceof FunctionalTestCaseBootstrapUtility)) {
-			throw new Exception(
-				'Bootstrap utility not set. Is parent::setUp() called in setUp()?',
-				1376826527
-			);
-		}
-		$this->bootstrapUtility->tearDown();
-	}
-
-	/**
 	 * Get DatabaseConnection instance - $GLOBALS['TYPO3_DB']
 	 *
 	 * This method should be used instead of direct access to
@@ -363,10 +345,20 @@ abstract class FunctionalTestCase extends BaseTestCase {
 		$pageId = (int)$pageId;
 		$languageId = (int)$languageId;
 
+		$phpExecutable = 'php';
 		if (defined('PHP_BINARY')) {
 			$phpExecutable = PHP_BINARY;
-		} else {
+		} elseif (TYPO3_OS !== 'WIN' && defined('PHP_BINDIR')) {
 			$phpExecutable = rtrim(PHP_BINDIR, '/') . '/php';
+		} else {
+			foreach(explode(';', $_SERVER['Path']) as $path) {
+				$path = rtrim(strtr($path, '\\', '/'), '/') . '/';
+				$phpFile = 'php' . (TYPO3_OS === 'WIN' ? '.exe' : '');
+				if (file_exists($path . $phpFile) && is_file($path . $phpFile)) {
+					$phpExecutable = $path . $phpFile;
+					break;
+				}
+			}
 		}
 
 		$additionalParameter = '';
@@ -383,11 +375,19 @@ abstract class FunctionalTestCase extends BaseTestCase {
 			'requestUrl' => 'http://localhost/?id=' . $pageId . '&L=' . $languageId . $additionalParameter,
 		);
 
-		$commandParts = array(
-			escapeshellcmd($phpExecutable),
-			escapeshellarg(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Framework/Scripts/Request.php'),
-			escapeshellarg(json_encode($arguments)),
-		);
+		if (TYPO3_OS !== 'WIN') {
+			$commandParts = array(
+				escapeshellcmd($phpExecutable),
+				escapeshellarg(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Framework/Scripts/Request.php'),
+				escapeshellarg(json_encode($arguments)),
+			);
+		} else {
+			$commandParts = array(
+				escapeshellcmd($phpExecutable),
+				escapeshellarg(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Framework/Scripts/Request.php'),
+				strtr(escapeshellarg(strtr(json_encode($arguments), array('&' => '^&', '"' => '"""'))), '   ', '"""'),
+			);
+		}
 
 		$command = trim(implode(' ', $commandParts));
 		$response = shell_exec($command);

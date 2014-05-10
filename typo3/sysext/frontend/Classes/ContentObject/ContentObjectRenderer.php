@@ -1161,21 +1161,26 @@ class ContentObjectRenderer {
 	/**
 	 * Converts a given config in Flexform to a conf-array
 	 *
-	 * @param string $flexData Flexform data
+	 * @param string|array $flexData Flexform data
 	 * @param array $conf Array to write the data into, by reference
 	 * @param boolean $recursive Is set if called recursive. Don't call function with this parameter, it's used inside the function only
 	 * @return void
-	 * @access public
 	 */
 	public function readFlexformIntoConf($flexData, &$conf, $recursive = FALSE) {
-		if ($recursive === FALSE) {
+		if ($recursive === FALSE && is_string($flexData)) {
 			$flexData = GeneralUtility::xml2array($flexData, 'T3');
 		}
-		if (is_array($flexData)) {
-			if (isset($flexData['data']['sDEF']['lDEF'])) {
-				$flexData = $flexData['data']['sDEF']['lDEF'];
+		if (isset($flexData['data']['sDEF']['lDEF'])) {
+			$flexData = $flexData['data']['sDEF']['lDEF'];
+		}
+		if (!is_array($flexData)) {
+			return;
+		}
+		foreach ($flexData as $key => $value) {
+			if (!is_array($value)) {
+				continue;
 			}
-			foreach ($flexData as $key => $value) {
+			if (isset($value['el'])) {
 				if (is_array($value['el']) && count($value['el']) > 0) {
 					foreach ($value['el'] as $ekey => $element) {
 						if (isset($element['vDEF'])) {
@@ -1191,9 +1196,9 @@ class ContentObjectRenderer {
 				} else {
 					$this->readFlexformIntoConf($value['el'], $conf[$key], TRUE);
 				}
-				if ($value['vDEF']) {
-					$conf[$key] = $value['vDEF'];
-				}
+			}
+			if (isset($value['vDEF'])) {
+				$conf[$key] = $value['vDEF'];
 			}
 		}
 	}
@@ -1277,11 +1282,9 @@ class ContentObjectRenderer {
 			// This array is used to collect the image-refs on the page...
 			$GLOBALS['TSFE']->imagesOnPage[] = $source;
 			$altParam = $this->getAltParam($conf);
-			$params = '';
-			if ($conf['params'] && !isset($conf['params.'])) {
-				$params = ' ' . $conf['params'];
-			} elseif ($conf['params'] && is_array($conf['params.'])) {
-				$params = ' ' . $this->stdWrap($conf['params'], $conf['params.']);
+			$params = $this->stdWrapValue('params', $conf);
+			if ($params !== '' && $params{0} !== ' ') {
+				$params = ' ' . $params;
 			}
 
 			$imageTagValues = array(
@@ -2103,6 +2106,28 @@ class ContentObjectRenderer {
 		$this->stdWrapRecursionLevel--;
 
 		return $content;
+	}
+
+	/**
+	 * Gets a configuration value by passing them through stdWrap first and taking a default value if stdWrap doesn't yield a result.
+	 *
+	 * @param string $key The config variable key (from TS array).
+	 * @param array $config The TypoScript array.
+	 * @param string $defaultValue Optional default value.
+	 * @return string Value of the config variable
+	 */
+	public function stdWrapValue($key, array $config, $defaultValue = '') {
+		if (isset($config[$key])) {
+			if (!isset($config[$key . '.'])) {
+				return $config[$key];
+			}
+		} elseif (isset($config[$key . '.'])) {
+			$config[$key] = '';
+		} else {
+			return $defaultValue;
+		}
+		$stdWrapped = $this->stdWrap($config[$key], $config[$key . '.']);
+		return $stdWrapped ?: $defaultValue;
 	}
 
 	/**

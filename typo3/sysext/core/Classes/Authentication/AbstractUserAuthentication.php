@@ -487,7 +487,7 @@ abstract class AbstractUserAuthentication {
 		// Make certain that NO user is set initially
 		$this->user = NULL;
 		// Set all possible headers that could ensure that the script is not cached on the client-side
-		if ($this->sendNoCacheHeaders) {
+		if ($this->sendNoCacheHeaders && !(TYPO3_REQUESTTYPE & TYPO3_REQUESTTYPE_CLI)) {
 			header('Expires: 0');
 			header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 			$cacheControlHeader = 'no-cache, must-revalidate';
@@ -706,6 +706,7 @@ abstract class AbstractUserAuthentication {
 				}
 				// Delete old user session if any
 				$this->logoff();
+				$this->newSessionID = TRUE;
 			}
 			// Refuse login for _CLI users, if not processing a CLI request type
 			// (although we shouldn't be here in case of a CLI request type)

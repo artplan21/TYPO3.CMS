@@ -37,7 +37,7 @@ namespace TYPO3\CMS\Extensionmanager\Utility\Parser;
  * @author Steffen Kamper <info@sk-typo3.de>
  * @since 2010-02-09
  */
-abstract class AbstractExtensionXmlParser extends \TYPO3\CMS\Extensionmanager\Utility\Parser\AbstractXmlParser {
+abstract class AbstractExtensionXmlParser extends AbstractXmlParser {
 
 	/**
 	 * Keeps current author company of an extension's version.
@@ -407,7 +407,9 @@ abstract class AbstractExtensionXmlParser extends \TYPO3\CMS\Extensionmanager\Ut
 		$dependenciesArray = unserialize($dependencies);
 		if (is_array($dependenciesArray)) {
 			foreach ($dependenciesArray as $version) {
-				$newDependencies[$version['kind']][$version['extensionKey']] = $version['versionRange'];
+				if (!empty($version['kind']) && !empty($version['extensionKey'])) {
+					$newDependencies[$version['kind']][$version['extensionKey']] = $version['versionRange'];
+				}
 			}
 		}
 		return serialize($newDependencies);
