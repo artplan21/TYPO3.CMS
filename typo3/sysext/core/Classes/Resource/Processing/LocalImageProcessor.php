@@ -124,6 +124,7 @@ class LocalImageProcessor implements ProcessorInterface {
 	 * @internal Don't use this method from outside the LocalImageProcessor!
 	 */
 	public function wrapFileName($inputName) {
+		// TODO Figure out if we need/want unicode-normalization as well …
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
 			$currentLocale = setlocale(LC_CTYPE, 0);
 			setlocale(LC_CTYPE, $GLOBALS['TYPO3_CONF_VARS']['SYS']['systemLocale']);
