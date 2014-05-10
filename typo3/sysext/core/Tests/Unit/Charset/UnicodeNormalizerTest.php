@@ -52,7 +52,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @test
 	 * @see http://forge.typo3.org/issues/57695
 	 */
-	public function checkAsciiStringIsNormalized() {
+	public function checkIfAsciiStringIsNormalized() {
 
 		$ascii_dejavu = 'dejavu';
 
@@ -69,7 +69,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @test
 	 * @see http://forge.typo3.org/issues/57695
 	 */
-	public function checkPrecomposedStringIsNormalized() {
+	public function checkIfPrecomposedStringIsNormalized() {
 		// fantasy-string: déjàvü
 		$nfc_dejavu = hex2bin('64c3a96ac3a076c3bc');
 
@@ -86,7 +86,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @test
 	 * @see http://forge.typo3.org/issues/57695
 	 */
-	public function checkDecomposedStringIsNormalized() {
+	public function checkIfDecomposedStringIsNormalized() {
 		// the same string as above, but decomposed
 		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
 
@@ -98,12 +98,12 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	}
 
 	/**
-	 * Check if normalization-detection works for combined pre- and decomposed unicode-strings (only utf8)
+	 * Check if normalization-detection works for combined ascii, pre- and decomposed unicode-strings (only utf8)
 	 *
 	 * @test
 	 * @see http://forge.typo3.org/issues/57695
 	 */
-	public function checkCombinedStringIsNormalized() {
+	public function checkIfCombinedStringIsNormalized() {
 		// combination of all three strings from above
 		$ascii_nfc_nfd_dejavu = 'dejavu'.hex2bin('64c3a96ac3a076c3bc').hex2bin('6465cc816a61cc807675cc88');
 
@@ -119,11 +119,72 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	///////////////////////////////////
 
 	/**
+	 * Check if normalization works for pure ascii strings
+	 *
 	 * @test
 	 * @see http://forge.typo3.org/issues/57695
 	 */
-	public function stringNormalization() {
-		$this->fail('missing unit-test implementation');
+	public function checkAsciiStringNormalization() {
+		$ascii_dejavu = 'dejavu';
+
+		$this->assertSame($ascii_dejavu, $this->fixture->normalize($ascii_dejavu, UnicodeNormalizer::NONE));
+		$this->assertSame($ascii_dejavu, $this->fixture->normalize($ascii_dejavu, UnicodeNormalizer::FORM_D));
+		$this->assertSame($ascii_dejavu, $this->fixture->normalize($ascii_dejavu, UnicodeNormalizer::FORM_KD));
+		$this->assertSame($ascii_dejavu, $this->fixture->normalize($ascii_dejavu, UnicodeNormalizer::FORM_C));
+		$this->assertSame($ascii_dejavu, $this->fixture->normalize($ascii_dejavu, UnicodeNormalizer::FORM_KC));
 	}
 
+	/**
+	 * Check if normalization works for pre-composed unicode-strings (only utf8)
+	 *
+	 * @test
+	 * @see http://forge.typo3.org/issues/57695
+	 */
+	public function checkPrecomposedStringNormalization() {
+		// fantasy-string: déjàvü
+		$nfc_dejavu = hex2bin('64c3a96ac3a076c3bc');
+
+		$this->assertSame($nfc_dejavu, $this->fixture->normalize($nfc_dejavu, UnicodeNormalizer::NONE));
+		$this->assertNotSame($nfc_dejavu, $this->fixture->normalize($nfc_dejavu, UnicodeNormalizer::FORM_D));
+		$this->assertNotSame($nfc_dejavu, $this->fixture->normalize($nfc_dejavu, UnicodeNormalizer::FORM_KD));
+		$this->assertSame($nfc_dejavu, $this->fixture->normalize($nfc_dejavu, UnicodeNormalizer::FORM_C));
+		$this->assertSame($nfc_dejavu, $this->fixture->normalize($nfc_dejavu, UnicodeNormalizer::FORM_KC));
+	}
+
+	/**
+	 * Check if normalization works for decomposed unicode-strings (only utf8)
+	 *
+	 * @test
+	 * @see http://forge.typo3.org/issues/57695
+	 */
+	public function checkDecomposedStringNormalization() {
+		// the same string as above, but decomposed
+		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
+
+		$this->assertSame($nfd_dejavu, $this->fixture->normalize($nfd_dejavu, UnicodeNormalizer::NONE));
+		$this->assertSame($nfd_dejavu, $this->fixture->normalize($nfd_dejavu, UnicodeNormalizer::FORM_D));
+		$this->assertSame($nfd_dejavu, $this->fixture->normalize($nfd_dejavu, UnicodeNormalizer::FORM_KD));
+		$this->assertNotSame($nfd_dejavu, $this->fixture->normalize($nfd_dejavu, UnicodeNormalizer::FORM_C));
+		$this->assertNotSame($nfd_dejavu, $this->fixture->normalize($nfd_dejavu, UnicodeNormalizer::FORM_KC));
+	}
+
+	/**
+	 * Check if normalization works for combined ascii, pre- and decomposed unicode-strings (only utf8)
+	 *
+	 * @test
+	 * @see http://forge.typo3.org/issues/57695
+	 */
+	public function checkCombinedStringNormalization() {
+		// wild combination of all three strings from above
+		$ascii_nfc_nfd_dejavu = 'dejavu'.hex2bin('64c3a96ac3a076c3bc').hex2bin('6465cc816a61cc807675cc88');
+		$this->assertSame($ascii_nfc_nfd_dejavu, $this->fixture->normalize($ascii_nfc_nfd_dejavu, UnicodeNormalizer::NONE));
+
+		$nfd_dejavu_triple = hex2bin('64656a6176756465cc816a61cc807675cc886465cc816a61cc807675cc88');
+		$this->assertSame($nfd_combined_dejavu, $this->fixture->normalize($nfd_dejavu_triple, UnicodeNormalizer::FORM_D));
+		$this->assertSame($nfd_combined_dejavu, $this->fixture->normalize($nfd_dejavu_triple, UnicodeNormalizer::FORM_KD));
+
+		$nfc_dejavu_triple = hex2bin('64656a61767564c3a96ac3a076c3bc64c3a96ac3a076c3bc');
+		$this->assertSame($nfc_combined_dejavu, $this->fixture->normalize($nfc_dejavu_triple, UnicodeNormalizer::FORM_C));
+		$this->assertSame($nfc_combined_dejavu, $this->fixture->normalize($nfc_dejavu_triple, UnicodeNormalizer::FORM_KC));
+	}
 }
