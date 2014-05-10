@@ -74,23 +74,23 @@ class UnicodeNormalizer {
 	protected $normalization = self::NONE;
 
 	/**
-	 * A flag indicating which normalizer to use - TRUE means use Normalizer from PHP's “intl”-extension,
-	 * anything else will fall back to pure PHP-code from the Patchwork project.
+	 * A string indicating which normalizer implementation to use - "intl" means use Normalizer from PHP's “intl”-extension,
+	 * "patchwork" fall back to pure PHP-code from the Patchwork project and anything else disables normalization completely.
 	 *
-	 * @var boolean
+	 * @var string
 	 */
-	protected $useIntlExtension = NULL;
+	protected $implementation = NULL;
 
 	/**
 	 * Constructor
 	 *
 	 * @link http://www.php.net/manual/en/class.normalizer.php
 	 * @param integer $normalization Optionally set normalization form to one of the known constants; NONE is default.
-	 * @param string $implementation Optionally set normalization implementation. Available are: “intl” and “patchwork”.
+	 * @param string $implementation Optionally set normalization implementation to “” (none), “intl” or “patchwork”.
 	 */
 	public function __construct($normalization = NULL, $implementation = NULL) {
-		$this->useIntlExtension = 'intl' === ($implementation ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
 		$this->setNormalizationForm($normalization ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization']);
+		$this->setNormalizerImplementation($implementation ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
 	}
 
 	/**
@@ -102,10 +102,16 @@ class UnicodeNormalizer {
 	 * @return boolean TRUE if normalized, FALSE otherwise or if an error occurred.
 	 */
 	public function isNormalized($input, $normalization = NULL) {
-		if ($this->useIntlExtension) {
-			return \Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+		switch ($this->implementation) {
+			case "intl":
+				return \Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+				break;
+			case "patchwork":
+				return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+				break;
 		}
-		return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+		// In all other cases return as is …
+		return $input;
 	}
 
 	/**
@@ -117,10 +123,16 @@ class UnicodeNormalizer {
 	 * @return string|NULL The normalized string or NULL if an error occurred.
 	 */
 	public function normalize($input, $normalization = NULL) {
-		if ($this->useIntlExtension) {
-			return \Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+		switch ($this->implementation) {
+			case "intl":
+				return \Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+				break;
+			case "patchwork":
+				return \Patchwork\PHP\Shim\Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+				break;
 		}
-		return \Patchwork\PHP\Shim\Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+		// In all other cases return as is …
+		return $input;
 	}
 
 	/**
@@ -132,9 +144,9 @@ class UnicodeNormalizer {
 	 */
 	public function setNormalizationForm($normalization) {
 		if (!in_array($normalization, range(1, 5))) {
-			throw new \InvalidArgumentException(sprintf('Invalid unicode-normalization form given: %s.', $normalization), 1398603947);
+			throw new \InvalidArgumentException(sprintf('Unknown unicode-normalization form: %s.', $normalization), 1398603947);
 		}
-		$this->normalization = $normalization;
+		$this->normalization = (int) $normalization;
 	}
 
 	/**
@@ -144,5 +156,28 @@ class UnicodeNormalizer {
 	 */
 	public function getNormalizationForm() {
 		return $this->normalization;
+	}
+
+	/**
+	 * Set the current normalization-form constant to the given $normalization. Also see constructor.
+	 *
+	 * @param string $normalization
+	 * @return void
+	 * @throws \InvalidArgumentException
+	 */
+	public function setNormalizerImplementation($implementation) {
+		if (!in_array($implementation, array('', 'intl', 'patchwork'))) {
+			throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
+		}
+		$this->implementation = (string) $implementation;
+	}
+
+	/**
+	 * Retrieve the current normalization-form constant.
+	 *
+	 * @return integer
+	 */
+	public function getNormalizerImplementation() {
+		return $this->implementation;
 	}
 }
