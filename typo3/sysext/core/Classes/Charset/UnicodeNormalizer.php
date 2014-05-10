@@ -34,6 +34,8 @@ namespace TYPO3\CMS\Core\Charset;
  * @see http://www.php.net/manual/en/class.normalizer.php
  * @see http://en.wikipedia.org/wiki/Unicode_equivalence
  * @see http://stackoverflow.com/questions/7931204/what-is-normalized-utf-8-all-about
+ * @see http://www.w3.org/TR/charmod-norm/
+ * @see http://blog.whatwg.org/tag/unicode
  */
 class UnicodeNormalizer {
 
@@ -80,11 +82,14 @@ class UnicodeNormalizer {
 	protected $useIntlExtension = NULL;
 
 	/**
-	 * @param integer $normalization Set the default normalization form to one of the available constants; \Normalizer::NONE is default.
-	 * @see http://www.php.net/manual/en/class.normalizer.php
+	 * Constructor
+	 *
+	 * @link http://www.php.net/manual/en/class.normalizer.php
+	 * @param integer $normalization Optionally set normalization form to one of the known constants; NONE is default.
+	 * @param string $implementation Optionally set normalization implementation. Available are: “intl” and “patchwork”.
 	 */
-	public function __construct($normalization = NULL) {
-		$this->useIntlExtension = (boolean) ($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] === 'intl');
+	public function __construct($normalization = NULL, $implementation = NULL) {
+		$this->useIntlExtension = 'intl' === ($implementation ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
 		$this->setNormalizationForm($normalization ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization']);
 	}
 
