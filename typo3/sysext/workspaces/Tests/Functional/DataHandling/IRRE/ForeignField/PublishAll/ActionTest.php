@@ -114,12 +114,76 @@ class ActionTest extends \TYPO3\CMS\Workspaces\Tests\Functional\DataHandling\IRR
 
 	/**
 	 * @test
-	 * @see DataSet/Assertion/localizeParentContentRecord.csv
+	 * @see DataSet/copyParentContentToDifferentPage.csv
 	 */
-	public function localizeParentContent() {
-		parent::localizeParentContent();
+	public function copyParentContentToDifferentPage() {
+		parent::copyParentContentToDifferentPage();
 		$this->actionService->publishWorkspace(self::VALUE_WorkspaceId);
-		$this->assertAssertionDataSet('localizeParentContent');
+		$this->assertAssertionDataSet('copyParentContentToDifferentPage');
+
+		$responseContent = $this->getFrontendResponse(self::VALUE_PageIdTarget, 0)->getResponseContent();
+		$this->assertResponseContentStructureHasRecords(
+			$responseContent, self::TABLE_Content . ':' . $this->recordIds['newContentId'], self::FIELD_ContentHotel,
+			self::TABLE_Hotel, 'title', array('Hotel #1')
+		);
+	}
+
+	/**
+	 * @test
+	 * @see DataSet/localizeParentContentKeep.csv
+	 */
+	public function localizeParentContentInKeepMode() {
+		parent::localizeParentContentInKeepMode();
+		$this->actionService->publishWorkspace(self::VALUE_WorkspaceId);
+		$this->assertAssertionDataSet('localizeParentContentKeep');
+
+		$responseContent = $this->getFrontendResponse(self::VALUE_PageId, self::VALUE_LanguageId)->getResponseContent();
+		$this->assertResponseContentStructureDoesNotHaveRecords(
+			$responseContent, self::TABLE_Content . ':' . self::VALUE_ContentIdLast, self::FIELD_ContentHotel,
+			self::TABLE_Hotel, 'title', array('[Translate to Dansk:] Hotel #1')
+		);
+	}
+
+	/**
+	 * @test
+	 * @see DataSet/localizeParentContentWAllChildrenKeep.csv
+	 */
+	public function localizeParentContentWithAllChildrenInKeepMode() {
+		parent::localizeParentContentWithAllChildrenInKeepMode();
+		$this->actionService->publishWorkspace(self::VALUE_WorkspaceId);
+		$this->assertAssertionDataSet('localizeParentContentWAllChildrenKeep');
+
+		$responseContent = $this->getFrontendResponse(self::VALUE_PageId, self::VALUE_LanguageId)->getResponseContent();
+		$this->assertResponseContentStructureDoesNotHaveRecords(
+			$responseContent, self::TABLE_Content . ':' . self::VALUE_ContentIdLast, self::FIELD_ContentHotel,
+			self::TABLE_Hotel, 'title', array('[Translate to Dansk:] Hotel #1')
+		);
+	}
+
+	/**
+	 * @test
+	 * @see DataSet/localizeParentContentSelect.csv
+	 */
+	public function localizeParentContentInSelectMode() {
+		parent::localizeParentContentInSelectMode();
+		$this->actionService->publishWorkspace(self::VALUE_WorkspaceId);
+		$this->assertAssertionDataSet('localizeParentContentSelect');
+
+		$responseContent = $this->getFrontendResponse(self::VALUE_PageId, self::VALUE_LanguageId)->getResponseContent();
+		$this->assertResponseContentStructureDoesNotHaveRecords(
+			$responseContent, self::TABLE_Content . ':' . self::VALUE_ContentIdLast, self::FIELD_ContentHotel,
+			self::TABLE_Hotel, 'title', array('[Translate to Dansk:] Hotel #1')
+		);
+	}
+
+	/**
+	 * @test
+	 * @see DataSet/localizeParentContentWAllChildrenSelect.csv
+	 */
+	public function localizeParentContentWithAllChildrenInSelectMode() {
+		parent::localizeParentContentWithAllChildrenInSelectMode();
+		$this->actionService->publishWorkspace(self::VALUE_WorkspaceId);
+		$this->assertAssertionDataSet('localizeParentContentWAllChildrenSelect');
 
 		$responseContent = $this->getFrontendResponse(self::VALUE_PageId, self::VALUE_LanguageId)->getResponseContent();
 		$this->assertResponseContentStructureHasRecords(

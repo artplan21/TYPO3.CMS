@@ -36,6 +36,9 @@ abstract class AbstractActionTestCase extends \TYPO3\CMS\Core\Tests\Functional\D
 	const VALUE_PageIdWebsite = 1;
 	const VALUE_ContentIdFirst = 297;
 	const VALUE_ContentIdLast = 298;
+	const VALUE_HotelIdFirst = 3;
+	const VALUE_HotelIdSecond = 4;
+	const VALUE_HotelIdThird = 5;
 	const VALUE_LanguageId = 1;
 	const VALUE_WorkspaceId = 1;
 
@@ -115,9 +118,53 @@ abstract class AbstractActionTestCase extends \TYPO3\CMS\Core\Tests\Functional\D
 	}
 
 	/**
-	 * @see DataSet/Assertion/localizeParentContentRecord.csv
+	 * @see DataSet/copyParentContentToDifferentPage.csv
 	 */
-	public function localizeParentContent() {
+	public function copyParentContentToDifferentPage() {
+		$newTableIds = $this->actionService->copyRecord(self::TABLE_Content, self::VALUE_ContentIdLast, self::VALUE_PageIdTarget);
+		$this->recordIds['newContentId'] = $newTableIds[self::TABLE_Content][self::VALUE_ContentIdLast];
+	}
+
+	/**
+	 * @see DataSet/localizeParentContentKeep.csv
+	 */
+	public function localizeParentContentInKeepMode() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizationMode'] = 'keep';
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = FALSE;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = FALSE;
+		$newTableIds = $this->actionService->localizeRecord(self::TABLE_Content, self::VALUE_ContentIdLast, self::VALUE_LanguageId);
+		$this->recordIds['localizedContentId'] = $newTableIds[self::TABLE_Content][self::VALUE_ContentIdLast];
+	}
+
+	/**
+	 * @see DataSet/localizeParentContentWAllChildrenKeep.csv
+	 */
+	public function localizeParentContentWithAllChildrenInKeepMode() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizationMode'] = 'keep';
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = TRUE;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = TRUE;
+		$newTableIds = $this->actionService->localizeRecord(self::TABLE_Content, self::VALUE_ContentIdLast, self::VALUE_LanguageId);
+		$this->recordIds['localizedContentId'] = $newTableIds[self::TABLE_Content][self::VALUE_ContentIdLast];
+	}
+
+	/**
+	 * @see DataSet/localizeParentContentSelect.csv
+	 */
+	public function localizeParentContentInSelectMode() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizationMode'] = 'select';
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = FALSE;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = FALSE;
+		$newTableIds = $this->actionService->localizeRecord(self::TABLE_Content, self::VALUE_ContentIdLast, self::VALUE_LanguageId);
+		$this->recordIds['localizedContentId'] = $newTableIds[self::TABLE_Content][self::VALUE_ContentIdLast];
+	}
+
+	/**
+	 * @see DataSet/localizeParentContentWAllChildrenSelect.csv
+	 */
+	public function localizeParentContentWithAllChildrenInSelectMode() {
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizationMode'] = 'select';
+		$GLOBALS['TCA'][self::TABLE_Content]['columns'][self::FIELD_ContentHotel]['config']['behaviour']['localizeChildrenAtParentLocalization'] = TRUE;
+		$GLOBALS['TCA'][self::TABLE_Hotel]['columns'][self::FIELD_HotelOffer]['config']['behaviour']['localizeChildrenAtParentLocalization'] = TRUE;
 		$newTableIds = $this->actionService->localizeRecord(self::TABLE_Content, self::VALUE_ContentIdLast, self::VALUE_LanguageId);
 		$this->recordIds['localizedContentId'] = $newTableIds[self::TABLE_Content][self::VALUE_ContentIdLast];
 	}
