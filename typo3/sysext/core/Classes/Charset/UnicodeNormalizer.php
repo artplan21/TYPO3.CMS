@@ -142,6 +142,28 @@ class UnicodeNormalizer {
 	}
 
 	/**
+	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
+	 * NOTICE: Array is passed by reference!
+	 *
+	 * @param string $array Input array, possibly multidimensional
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 * @see conv()
+	 * @todo Define visibility
+	 */
+	public function normalizeArray(array & $array, $normalization = NULL) {
+		foreach ($array as $key => $value) {
+			if (empty($value)) {
+				continue;
+			} elseif (is_array($value)) {
+				$this->normalizeArray($array[$key], $normalization);
+			} elseif (is_string($value) && !$this->isNormalized($value, $normalization)) {
+				$array[$key] = $this->normalize($value, $normalization);
+			}
+		}
+	}
+
+	/**
 	 * Set the current normalization-form constant to the given $normalization. Also see constructor.
 	 *
 	 * @param integer $normalization
