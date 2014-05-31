@@ -271,6 +271,6 @@ class UnicodeNormalizer {
 			default:
 				throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
 		}
-		class_alias($implementationClass, $implementationAlias, $autoload);
+		return class_alias($implementationClass, $implementationAlias, $autoload);
 	}
 }
