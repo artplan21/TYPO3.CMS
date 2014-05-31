@@ -908,9 +908,7 @@ class FormEngine {
 		} else {
 			// Only one tab, so just implode and wrap the background image (= tab container) around:
 			$output = implode('', $out_array[$out_sheet]);
-			if ($this->inline->inlineCount == 0) {
-				$output = '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
-			}
+			$output = '<div class="typo3-dyntabmenu-divs">' . $output . '</div>';
 		}
 
 		return $output;
@@ -2970,7 +2968,7 @@ TBE_EDITOR.customEvalFunctions[\'' . $evalData . '\'] = function(value) {
 
 					// If there is a title, check for LLL label
 					if (strlen($theTitle) > 0) {
-						$theTitle = htmlspecialchars(GeneralUtility::fixed_lgd_cs($this->sL($theTitle), 30));
+						$theTitle = htmlspecialchars(GeneralUtility::fixed_lgd_cs($this->sL($theTitle), (int)$GLOBALS['BE_USER']->uc['titleLen']));
 					}
 					// If it's a "section" or "container":
 					if ($value['type'] == 'array') {
