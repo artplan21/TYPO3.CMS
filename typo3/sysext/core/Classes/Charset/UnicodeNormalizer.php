@@ -157,8 +157,8 @@ class UnicodeNormalizer {
 	/**
 	 * Ensures that given input is (well formed and) normalized UTF-8.
 	 *
-	 * Inspired by the contributed “Patchwork-UTF8” project's Bootup::filterString()
-	 *
+	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's
+	 * “Bootup::filterString()”-method and tweaked for our needs.
 	 *
 	 * @param string $input
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
@@ -199,7 +199,6 @@ class UnicodeNormalizer {
 
 	/**
 	 * Ensures for all elements in ARRAY with type string to be well formed and normalized UTF-8.
-	 *
 	 * NOTICE: Array is passed by reference!
 	 *
 	 * @param array $array Input array, possibly multidimensional
@@ -215,7 +214,8 @@ class UnicodeNormalizer {
 	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
 	 * are (well formed and) normalized UTF-8 if needed.
 	 *
-	 * Inspired by the contributed “Patchwork-UTF8” project's Bootup::filterRequestInputs()
+	 * This implementation has been inspired by the contributed “Patchwork-UTF8” project's
+	 * “Bootup::filterRequestInputs()”-method and tweaked for our needs.
 	 *
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
