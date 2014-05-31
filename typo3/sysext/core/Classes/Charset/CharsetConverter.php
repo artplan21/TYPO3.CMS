@@ -695,6 +695,7 @@ class CharsetConverter {
 	 * @todo Define visibility
 	 */
 	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0) {
+		// TODO Figure out if we need/want unicode-normalization as well …
 		if ($fromCS == $toCS) {
 			return $str;
 		}
@@ -744,6 +745,7 @@ class CharsetConverter {
 	 * @todo Define visibility
 	 */
 	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0) {
+		// TODO Figure out if we need/want unicode-normalization as well …
 		foreach ($array as $key => $value) {
 			if (is_array($array[$key])) {
 				$this->convArray($array[$key], $fromCS, $toCS, $useEntityForNoChar);
