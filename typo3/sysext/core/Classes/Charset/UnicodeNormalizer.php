@@ -89,8 +89,12 @@ class UnicodeNormalizer {
 	 * @param string $implementation Optionally set normalization implementation to “” (none), “intl” or “patchwork”.
 	 */
 	public function __construct($normalization = NULL, $implementation = NULL) {
-		$this->setNormalizationForm($normalization ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization']);
-		$this->setNormalizerImplementation($implementation ?: $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
+		$this->setNormalizationForm(
+			$normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization
+		);
+		$this->setNormalizerImplementation(
+			$implementation === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] : $implementation
+		);
 	}
 
 	/**
@@ -102,12 +106,13 @@ class UnicodeNormalizer {
 	 * @return boolean TRUE if normalized, FALSE otherwise or if an error occurred.
 	 */
 	public function isNormalized($input, $normalization = NULL) {
+		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
 		switch ($this->implementation) {
 			case "intl":
-				return \Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+				return \Normalizer::isNormalized($input, $normalization);
 				break;
 			case "patchwork":
-				return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, (int) ($normalization ?: $this->normalization));
+				return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, $normalization);
 				break;
 		}
 		// In all other cases return always TRUE …
@@ -123,12 +128,13 @@ class UnicodeNormalizer {
 	 * @return string|NULL The normalized string or NULL if an error occurred.
 	 */
 	public function normalize($input, $normalization = NULL) {
+		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
 		switch ($this->implementation) {
 			case "intl":
-				return \Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+				return \Normalizer::normalize($input, $normalization);
 				break;
 			case "patchwork":
-				return \Patchwork\PHP\Shim\Normalizer::normalize($input, (int) ($normalization ?: $this->normalization));
+				return \Patchwork\PHP\Shim\Normalizer::normalize($input, $normalization);
 				break;
 		}
 		// In all other cases return as is …
@@ -143,7 +149,7 @@ class UnicodeNormalizer {
 	 * @throws \InvalidArgumentException
 	 */
 	public function setNormalizationForm($normalization) {
-		if (!in_array($normalization, range(1, 5))) {
+		if (!in_array((int) $normalization, range(1, 5), TRUE)) {
 			throw new \InvalidArgumentException(sprintf('Unknown unicode-normalization form: %s.', $normalization), 1398603947);
 		}
 		$this->normalization = (int) $normalization;
