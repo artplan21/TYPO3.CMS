@@ -5096,8 +5096,8 @@ if (version == "n3") {
 		if (!isset($this->unicodeNormalizer) && 1 < $this->unicodeNormalization) {
 			/** @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer */
 			$this->unicodeNormalizer = GeneralUtility::makeInstance(
-					'TYPO3\\CMS\\Core\\Charset\UnicodeNormalizer',
-					$this->unicodeNormalization
+				'TYPO3\\CMS\\Core\\Charset\UnicodeNormalizer',
+				$this->unicodeNormalization
 			);
 		}
 		return $this->unicodeNormalizer;
