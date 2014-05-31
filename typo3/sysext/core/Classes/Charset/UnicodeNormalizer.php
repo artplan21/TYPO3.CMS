@@ -197,6 +197,9 @@ class UnicodeNormalizer {
 		if (!in_array($implementation, array('', 'intl', 'patchwork'))) {
 			throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
 		}
+		// FIXME optimize implementation by using class-aliases like those below
+		// class_alias('Normalizer', 'UnicodeNormalizerImpl', FALSE);
+		// class_alias('Patchwork\PHP\Shim\Normalizer', 'UnicodeNormalizerImpl', FALSE);
 		$this->implementation = (string) $implementation;
 	}
 
