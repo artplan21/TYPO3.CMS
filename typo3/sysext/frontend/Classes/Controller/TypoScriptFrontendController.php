@@ -841,6 +841,23 @@ class TypoScriptFrontendController {
 	public $csConvObj;
 
 	/**
+	 * Unicode normalization form.
+	 *
+	 * @var integer
+	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 * @todo Define visibility
+	 */
+	public $unicodeNormalization = 0;
+
+	/**
+	 * Unicode normalization object.
+	 *
+	 * @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 * @todo Define visibility
+	 */
+	public $unicodeNormalizer = NULL;
+
+	/**
 	 * The default charset used in the frontend if nothing else is set.
 	 * @var string
 	 * @todo Define visibility
@@ -4818,6 +4835,9 @@ if (version == "n3") {
 		$this->renderCharset = $this->csConvObj->parse_charset($this->config['config']['renderCharset'] ? $this->config['config']['renderCharset'] : 'utf-8');
 		// Rendering charset of HTML page.
 		$this->metaCharset = $this->csConvObj->parse_charset($this->config['config']['metaCharset'] ? $this->config['config']['metaCharset'] : $this->renderCharset);
+
+		// Unicode normalization of HTML page.
+		$this->unicodeNormalization = (int) (isset($this->config['config']['unicodeNormalization']) ? $this->config['config']['unicodeNormalization'] : $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization']);
 	}
 
 	/**
@@ -4843,6 +4863,8 @@ if (version == "n3") {
 
 	/**
 	 * Converts input string from renderCharset to metaCharset IF the two charsets are different.
+	 * If needed the input gets unicode-normalized afterwards. But only if metaCharset is utf8 and
+	 * the unicode-normalizer is enabled by configuration.
 	 *
 	 * @param string $content Content to be converted.
 	 * @param string $label Label (just for fun, no function)
@@ -4853,16 +4875,9 @@ if (version == "n3") {
 		if ($this->renderCharset != $this->metaCharset) {
 			$content = $this->csConvObj->conv($content, $this->renderCharset, $this->metaCharset, TRUE);
 		}
-		$unicodeNormalization = (int) $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
-		if ($this->metaCharset == 'utf8' && 1 < $unicodeNormalization) {
-			// Enforce unicode-normalization form, ie. NFC as recommended by http://www.w3.org/TR/charmod-norm/ for html5.
-			// See \TYPO3\CMS\Core\Charset\UnicodeNormalizer implementation for further details and links.
-			/** @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer */
-			$unicodeNormalizer = GeneralUtility::makeInstance(
-				'TYPO3\\CMS\\Core\\Charset\UnicodeNormalizer', $unicodeNormalization,
-				$this->TYPO3_CONF_VARS['SYS']['unicodeNormalizer']
-			);
+		if ($this->metaCharset == 'utf8' && is_object($this->getUnicodeNormalizer())) {
 			// Check normalization state before actually normalizing, as this might get expensive.
+			$unicodeNormalizer = $this->getUnicodeNormalizer();
 			if (!$unicodeNormalizer->isNormalized($content)) {
 				$content = $unicodeNormalizer->normalize($content);
 			}
@@ -4872,11 +4887,19 @@ if (version == "n3") {
 
 	/**
 	 * Converts the $_POST array from metaCharset (page HTML charset from input form) to renderCharset (internal processing) IF the two charsets are different.
+	 * Initially the $_POST array gets unicode-normalized, if metaCharset is utf8 and the unicode-normalizer is enabled by configuration.
 	 *
 	 * @return void
 	 */
 	public function convPOSTCharset() {
-		if ($this->renderCharset != $this->metaCharset && is_array($_POST) && count($_POST)) {
+		if (!is_array($_POST) || empty($_POST)) {
+			return ;
+		}
+		if ($this->metaCharset == 'utf8' && is_object($this->getUnicodeNormalizer())) {
+			$this->getUnicodeNormalizer()->normalizeArray($_POST);
+			$GLOBALS['HTTP_POST_VARS'] = $_POST;
+		}
+		if ($this->renderCharset != $this->metaCharset) {
 			$this->csConvObj->convArray($_POST, $this->metaCharset, $this->renderCharset);
 			$GLOBALS['HTTP_POST_VARS'] = $_POST;
 		}
@@ -5054,5 +5077,24 @@ if (version == "n3") {
 	public function getDomainNameForPid($targetPid) {
 		$domainData = $this->getDomainDataForPid($targetPid);
 		return $domainData ? $domainData['domainName'] : NULL;
+	}
+
+	/**
+	 * Get unicode normalizer object instance, used to enforce unicode-normalization form,
+	 * ie. NFC as recommended by http://www.w3.org/TR/charmod-norm/ for html5.
+	 *
+	 * @return \TYPO3\CMS\Core\Charset\UnicodeNormalizer|NULL
+	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 */
+	public function getUnicodeNormalizer() {
+		if (!isset($this->unicodeNormalizer) && 1 < $this->unicodeNormalization) {
+			/** @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer */
+			$this->unicodeNormalizer = GeneralUtility::makeInstance(
+					'TYPO3\\CMS\\Core\\Charset\UnicodeNormalizer',
+					$this->unicodeNormalization,
+					$this->TYPO3_CONF_VARS['SYS']['unicodeNormalizer']
+			);
+		}
+		return $this->unicodeNormalizer;
 	}
 }
