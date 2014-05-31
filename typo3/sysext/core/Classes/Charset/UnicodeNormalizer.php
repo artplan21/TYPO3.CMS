@@ -264,6 +264,7 @@ class UnicodeNormalizer {
 			case 'patchwork':
 				$implementationClass = 'Patchwork\\PHP\\Shim\\Normalizer';
 				break;
+			// case 'stub':
 			case '':
 				$implementationClass = 'TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizerStub';
 				break;
