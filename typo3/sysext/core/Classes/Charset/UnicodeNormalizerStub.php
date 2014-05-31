@@ -1,10 +1,10 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
+namespace TYPO3\CMS\Core\Charset;
 
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
+ *  (c) 2014 Stephan Jorek <stephan.jorek@artplan21.de>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -24,17 +24,44 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use TYPO3\CMS\Install\Configuration;
-
 /**
- * Custom normalizer preset is a fallback if no other preset fits
+ * Stub class faking a unicode-normalizer implementation.
+ *
+ * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class CustomNormalizerPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
+final class UnicodeNormalizerStub {
 
 	/**
-	 * @var array Configuration values handled by this preset
+	 * Disable direct creation of this object.
 	 */
-	protected $configurationValues = array(
-		'SYS/unicodeNormalizer' => '',
-	);
+	protected function __construct() {
+	}
+
+	/**
+	 * Disable direct cloning of this object.
+	 */
+	protected function __clone() {
+	}
+
+	/**
+	 * Stub method which always returns TRUE.
+	 *
+	 * @param string $input
+	 * @param integer $normalization
+	 * @return boolean Always TRUE.
+	 */
+	public static function isNormalized($input, $normalization = NULL) {
+		return TRUE;
+	}
+
+	/**
+	 * Stub method which always returns given input as is
+	 *
+	 * @param string $input
+	 * @param integer $normalization
+	 * @return string The input string
+	 */
+	public static function normalize($input, $normalization = NULL) {
+		return $input;
+	}
 }

@@ -4,7 +4,7 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2014 Stephan Jorek <stephan.jorek@artplan21.de>
+ *  (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -27,21 +27,14 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Unicode normalization feature
+ * Stub normalizer preset is a fallback if no other preset fits
  */
-class UnicodeNormalizationFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
+class StubNormalizerPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
 
 	/**
-	 * @var string Name of feature
+	 * @var array Configuration values handled by this preset
 	 */
-	protected $name = 'UnicodeNormalization';
-
-	/**
-	 * @var array List of preset classes
-	 */
-	protected $presetRegistry = array(
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\IntlNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\PatchworkNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\StubNormalizerPreset',
+	protected $configurationValues = array(
+		'SYS/unicodeNormalizer' => '',
 	);
 }

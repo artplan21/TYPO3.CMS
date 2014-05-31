@@ -74,27 +74,14 @@ class UnicodeNormalizer {
 	protected $normalization = self::NONE;
 
 	/**
-	 * A string indicating which normalizer implementation to use - "intl" means use Normalizer from PHP's “intl”-extension,
-	 * "patchwork" fall back to pure PHP-code from the Patchwork project and anything else disables normalization completely.
-	 *
-	 * @var string
-	 */
-	protected $implementation = NULL;
-
-	/**
 	 * Constructor
 	 *
 	 * @link http://www.php.net/manual/en/class.normalizer.php
 	 * @param integer $normalization Optionally set normalization form to one of the known constants; NONE is default.
-	 * @param string $implementation Optionally set normalization implementation to “” (none), “intl” or “patchwork”.
 	 */
-	public function __construct($normalization = NULL, $implementation = NULL) {
-		$this->setNormalizationForm(
-			$normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization
-		);
-		$this->setNormalizerImplementation(
-			$implementation === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'] : $implementation
-		);
+	public function __construct($normalization = NULL) {
+		$this->registerImplementationIfNeeded($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
+		$this->setNormalizationForm($normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization);
 	}
 
 	/**
@@ -107,16 +94,8 @@ class UnicodeNormalizer {
 	 */
 	public function isNormalized($input, $normalization = NULL) {
 		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
-		switch ($this->implementation) {
-			case "intl":
-				return \Normalizer::isNormalized($input, $normalization);
-				break;
-			case "patchwork":
-				return \Patchwork\PHP\Shim\Normalizer::isNormalized($input, $normalization);
-				break;
-		}
-		// In all other cases return always TRUE …
-		return TRUE;
+		// Hint: UnicodeNormalizerImpl is a class_alias defined in self::registerImplementationIfNeeded
+		return UnicodeNormalizerImpl::isNormalized($input, $normalization);
 	}
 
 	/**
@@ -129,16 +108,8 @@ class UnicodeNormalizer {
 	 */
 	public function normalize($input, $normalization = NULL) {
 		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
-		switch ($this->implementation) {
-			case "intl":
-				return \Normalizer::normalize($input, $normalization);
-				break;
-			case "patchwork":
-				return \Patchwork\PHP\Shim\Normalizer::normalize($input, $normalization);
-				break;
-		}
-		// In all other cases return as is …
-		return $input;
+		// Hint: UnicodeNormalizerImpl is a class_alias defined in self::registerImplementationIfNeeded
+		return UnicodeNormalizerImpl::normalize($input, $normalization);
 	}
 
 	/**
@@ -254,32 +225,6 @@ class UnicodeNormalizer {
 	}
 
 	/**
-	 * Set the current normalization-form constant to the given $normalization. Also see constructor.
-	 *
-	 * @param string $normalization
-	 * @return void
-	 * @throws \InvalidArgumentException
-	 */
-	public function setNormalizerImplementation($implementation) {
-		if (!in_array($implementation, array('', 'intl', 'patchwork'))) {
-			throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
-		}
-		// FIXME optimize implementation by using class-aliases like those below
-		// class_alias('Normalizer', 'UnicodeNormalizerImpl', FALSE);
-		// class_alias('Patchwork\PHP\Shim\Normalizer', 'UnicodeNormalizerImpl', FALSE);
-		$this->implementation = (string) $implementation;
-	}
-
-	/**
-	 * Retrieve the current normalization-form constant.
-	 *
-	 * @return integer
-	 */
-	public function getNormalizerImplementation() {
-		return $this->implementation;
-	}
-
-	/**
 	 * Process all elements in ARRAY with type string with a method of this object.
 	 * NOTICE: Array is passed by reference!
 	 *
@@ -298,5 +243,33 @@ class UnicodeNormalizer {
 				$array[$key] = call_user_method($method, $this, $value, $normalization);
 			}
 		}
+	}
+
+	/**
+	 * Registers a class-alias for the globally configured normalizer implementation. This happens only once !
+	 *
+	 * @return boolean TRUE on success
+	 */
+	protected function registerImplementationIfNeeded($implementation) {
+		$implementationAlias = get_class($this) . 'Impl';
+		if (class_exists($implementationAlias, FALSE)) {
+			return TRUE;
+		}
+		$autoload = TRUE;
+		switch ($implementation) {
+			case 'intl':
+				$implementationClass = 'Normalizer';
+				$autoload = FALSE;
+				break;
+			case 'patchwork':
+				$implementationClass = 'Patchwork\\PHP\\Shim\\Normalizer';
+				break;
+			case '':
+				$implementationClass = 'TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizerStub';
+				break;
+			default:
+				throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
+		}
+		class_alias($implementationClass, $implementationAlias, $autoload);
 	}
 }
