@@ -575,7 +575,10 @@ class BasicFileUtility {
 	protected function getUnicodeNormalizer() {
 		if (!isset($this->unicodeNormalizer)) {
 			// The object may not exist yet, so we need to create it now.
-			$this->unicodeNormalizer = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizer');
+			$this->unicodeNormalizer = GeneralUtility::makeInstance(
+				'TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizer',
+				$GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']
+			);
 		}
 		return $this->unicodeNormalizer;
 	}
