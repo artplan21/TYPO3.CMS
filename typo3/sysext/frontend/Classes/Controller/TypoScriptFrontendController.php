@@ -4693,7 +4693,13 @@ if (version == "n3") {
 			$message = $this->csConvObj->conv($message, $this->renderCharset, $charset);
 			$headers = $this->csConvObj->conv($headers, $this->renderCharset, $charset);
 		}
-		GeneralUtility::plainMailEncoded($email, $subject, $message, $headers, $encoding, $charset);
+		if ($charset == 'utf8' && is_object($this->getUnicodeNormalizer())) {
+			$parts = array(&$email, &$subject, &$message, &$headers);
+			$this->getUnicodeNormalizer()->normalizeArray($parts);
+			// TODO check if “list(…) = $parts;” is really not need below
+			// list($email, $subject, $message, $headers) = $parts;
+		}
+ 		GeneralUtility::plainMailEncoded($email, $subject, $message, $headers, $encoding, $charset);
 	}
 
 	/**
