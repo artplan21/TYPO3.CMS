@@ -191,6 +191,7 @@ class UnicodeNormalizer {
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
 	 * @see \Patchwork\Utf8\Bootup::filterRequestInputs()
+	 * @todo Use this method during bootstrap ? If yes, then avoid double-encoding by TSFE->convPOSTCharset !
 	 */
 	public function filterAllInputArrays($normalization = NULL) {
 		foreach (array(&$_FILES, &$_ENV, &$_GET, &$_POST, &$_COOKIE, &$_SERVER, &$_REQUEST) as $array) {
