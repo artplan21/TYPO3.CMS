@@ -145,21 +145,88 @@ class UnicodeNormalizer {
 	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
 	 * NOTICE: Array is passed by reference!
 	 *
-	 * @param string $array Input array, possibly multidimensional
+	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see conv()
-	 * @todo Define visibility
+	 * @see normalize()
 	 */
 	public function normalizeArray(array & $array, $normalization = NULL) {
-		foreach ($array as $key => $value) {
-			if (empty($value)) {
-				continue;
-			} elseif (is_array($value)) {
-				$this->normalizeArray($array[$key], $normalization);
-			} elseif (is_string($value) && !$this->isNormalized($value, $normalization)) {
-				$array[$key] = $this->normalize($value, $normalization);
+		$this->processArrayWithMethod('normalize', $array, $normalization);
+	}
+
+	/**
+	 * Ensures that given input is (well formed and) normalized UTF-8.
+	 *
+	 * Inspired by the contributed “Patchwork-UTF8” project's Bootup::filterString()
+	 *
+	 *
+	 * @param string $input
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @param string $leading_combining
+	 * @return string
+	 * @see \Patchwork\Utf8\Bootup::filterString()
+	 * @todo keep method in sync with \Patchwork\Utf8\Bootup::filterString()
+	 */
+	public function filter($input, $normalization = NULL, $leading_combining = '◌') {
+		if (false !== strpos($input, "\r")) {
+			// Workaround https://bugs.php.net/65732
+			$input = str_replace("\r\n", "\n", $input);
+			$input = strtr($input, "\r", "\n");
+		}
+
+		if (preg_match('/[\x80-\xFF]/', $input)) {
+			if ($this->isNormalized($input, $normalization)) {
+				$normalized = '-';
+			} else {
+				$normalized = $this->normalize($input, $normalization);
+				if (isset($normalized[0])) {
+					$input = $normalized;
+				} else {
+					// TODO Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it right ?
+					$input = utf8_encode($input);
+				}
 			}
+
+			if ($input[0] >= "\x80" && isset($normalized[0], $leading_combining[0]) && preg_match('/^\p{Mn}/u', $input)) {
+				// Prevent leading combining chars
+				// for NFC-safe concatenations.
+				$input = $leading_combining . $input;
+			}
+		}
+
+		return $input;
+	}
+
+	/**
+	 * Ensures for all elements in ARRAY with type string to be well formed and normalized UTF-8.
+	 *
+	 * NOTICE: Array is passed by reference!
+	 *
+	 * @param array $array Input array, possibly multidimensional
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 * @see filter()
+	 */
+	public function filterArray(array & $array, $normalization = NULL) {
+		$this->processArrayWithMethod('filter', $array, $normalization);
+	}
+
+	/**
+	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
+	 * are (well formed and) normalized UTF-8 if needed.
+	 *
+	 * Inspired by the contributed “Patchwork-UTF8” project's Bootup::filterRequestInputs()
+	 *
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 * @see \Patchwork\Utf8\Bootup::filterRequestInputs()
+	 */
+	public function filterAllInputArrays($normalization = NULL) {
+		foreach (array(&$_FILES, &$_ENV, &$_GET, &$_POST, &$_COOKIE, &$_SERVER, &$_REQUEST) as $array) {
+			if (!is_array($array) || empty($array)) {
+				continue ;
+			}
+			$this->filterArray($array, $normalization);
 		}
 	}
 
@@ -210,5 +277,26 @@ class UnicodeNormalizer {
 	 */
 	public function getNormalizerImplementation() {
 		return $this->implementation;
+	}
+
+	/**
+	 * Process all elements in ARRAY with type string with a method of this object.
+	 * NOTICE: Array is passed by reference!
+	 *
+	 * @param string $method the method used to process the value of all strings
+	 * @param array $array Input array, possibly multidimensional
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 */
+	protected function processArrayWithMethod($method, array & $array, $normalization = NULL) {
+		foreach ($array as $key => $value) {
+			if (empty($value)) {
+				continue;
+			} elseif (is_array($value)) {
+				$this->processArrayWithMethod($method, $array[$key], $normalization);
+			} elseif (is_string($value) && !$this->isNormalized($value, $normalization)) {
+				$array[$key] = call_user_method($method, $this, $value, $normalization);
+			}
+		}
 	}
 }
