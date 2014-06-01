@@ -843,8 +843,8 @@ class TypoScriptFrontendController {
 	/**
 	 * Unicode normalization form.
 	 *
-	 * @var integer
-	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer
+	 * @var integer|string
+	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer::convertToNormalizationForm()
 	 * @todo Define visibility
 	 */
 	public $unicodeNormalization = 0;
@@ -4841,9 +4841,8 @@ if (version == "n3") {
 		$this->renderCharset = $this->csConvObj->parse_charset($this->config['config']['renderCharset'] ? $this->config['config']['renderCharset'] : 'utf-8');
 		// Rendering charset of HTML page.
 		$this->metaCharset = $this->csConvObj->parse_charset($this->config['config']['metaCharset'] ? $this->config['config']['metaCharset'] : $this->renderCharset);
-
 		// Unicode normalization of HTML page.
-		$this->unicodeNormalization = (int) (isset($this->config['config']['unicodeNormalization']) ? $this->config['config']['unicodeNormalization'] : $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization']);
+		$this->unicodeNormalization = isset($this->config['config']['unicodeNormalization']) ? $this->config['config']['unicodeNormalization'] : $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
 	}
 
 	/**

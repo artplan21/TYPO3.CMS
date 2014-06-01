@@ -25,9 +25,9 @@ namespace TYPO3\CMS\Core\Charset;
  ***************************************************************/
 
 /**
- * Class for normalizing unicode. Depending on what has been configured in the install-tool, this implementation is a
- * simple facade, either to “php-intl” extension's “Normalizer”-class or to the homonymous fallback shim-class from the
- * faboulus “Patchwork-UTF8” project.
+ * Class for normalizing unicode. Depending on what has been configured in the install-tool or typoscript, the implementation
+ * is a facade, either to “php-intl” extension's “Normalizer”-class or to the homonymous pure PHP-fallback from the faboulus
+ * “Patchwork-UTF8” project.
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  * @see http://forge.typo3.org/issues/57695
@@ -77,11 +77,13 @@ class UnicodeNormalizer {
 	 * Constructor
 	 *
 	 * @link http://www.php.net/manual/en/class.normalizer.php
-	 * @param integer $normalization Optionally set normalization form to one of the known constants; NONE is default.
+	 * @param integer|string $normalization Optionally set normalization form to one of the known constants; NONE is default.
+	 * @see self::convertToNormalizationForm() for details about the supported normalization values.
 	 */
 	public function __construct($normalization = NULL) {
 		$this->registerImplementationIfNeeded($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
-		$this->setNormalizationForm($normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization);
+		$normalization = $normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization;
+		$this->setNormalizationForm(self::convertToNormalizationForm($normalization));
 	}
 
 	/**
@@ -273,5 +275,65 @@ class UnicodeNormalizer {
 				throw new \InvalidArgumentException(sprintf('Unknown implementation given: %s.', $implementation), 1399749988);
 		}
 		return class_alias($implementationClass, $implementationAlias, $autoload);
+	}
+
+	/**
+	 * Converts the given value to a known normalization-form constant.
+	 *
+	 * Examples of supported values:
+	 * - case-insensitive abbreviation strings: D, KD, C, KC, NFC, nfc, FORM_C, formKC, …
+	 * - integers from 0 to 5, which are: 0 = NONE, 1 = AUTO, 2 = NFD, 3 = NFKD, 4 = NFC, 5 = NFKC
+	 * - case-insensitive keywords: none, default, disable(d), precompose(d), decompose(d)
+	 *
+	 * Meaning of the values:
+	 * - 0: No Unicode-Normalization (NONE, disabled)    : disables any normalization-attempts
+	 * - 1: Default Unicode-Normalization (AUTO, default): currently it disables any normalization-attempts too, but future
+	 *                                                     implementations may automatically handle the normalization
+	 * - 2: Normalization Form D (NFD, decomposed)       : canonical decomposition
+	 * - 3: Normalization Form KD (NFKD)                 : compatibility decomposition
+	 * - 4: Normalization Form C (NFC, precomposed)      : canonical decomposition followed by canonical composition
+	 * - 5: Normalization Form KC (NFKC)                 : compatibility decomposition followed by canonical composition
+	 *
+	 * Hints:
+	 * - The W3C recommends NFC for HTML5 Output.
+	 * - Mac OSX's HFS+ filesystem uses NFD to store paths. It provides significant faster sorting algorithms. Even if you
+	 *   choose something else than NFD here HFS+ Filesystems will always use NFD and decomposes if needed.
+	 *
+	 * @param string|integer $value
+	 */
+	public static function convertToNormalizationForm($value) {
+		$value = trim($value);
+		if ($value === '0' || in_array((int) $value, range(1, 5))) {
+			return max(1, (int) $value);
+		}
+
+		$value = str_replace(array('NF','FORM_','FORM'), '', strtoupper($value));
+
+		switch($value) {
+			case 'D':
+			case 'DECOMPOSE':
+			case 'DECOMPOSED':
+				return self::NFD;
+			case 'KD':
+				return self::NFKD;
+// Remember: if the following lines get enabled, remove '1' from initial if-conditional and below
+// 			case '1':
+// 			case 'AUTO':
+// 			case 'DEFAULT':
+			case 'C':
+			case 'PRECOMPOSE':
+			case 'PRECOMPOSED':
+				return self::NFC;
+			case 'KC':
+				return self::NFKC;
+// 			case '0':
+// 			case '1':
+// 			case 'NONE':
+// 			case 'DISABLED':
+// 			default:
+// 				return self::NONE;
+		}
+
+		return self::NONE;
 	}
 }
