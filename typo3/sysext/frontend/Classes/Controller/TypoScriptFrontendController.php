@@ -4857,7 +4857,7 @@ if (version == "n3") {
 			// List of global input arrays to unicode-normalize.
 			$this->unicodeNormalizeInputs = isset($this->config['config']['unicodeNormalizeInputs']) ? $this->config['config']['unicodeNormalizeInputs'] : $this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'];
 		} else {
-			// Disable all normaliztation attempts
+			// Disable all normalization attempts
 			$this->unicodeNormalization = 0;
 			$this->unicodeNormalizeInputs = '';
 		}
