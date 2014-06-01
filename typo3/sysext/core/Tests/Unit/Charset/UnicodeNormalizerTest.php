@@ -38,6 +38,10 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 */
 	protected $fixture = NULL;
 
+	/**
+	 * (non-PHPdoc)
+	 * @see PHPUnit_Framework_TestCase::setUp()
+	 */
 	public function setUp() {
 		$this->fixture = new UnicodeNormalizer();
 	}
@@ -57,7 +61,8 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 *   - … NFD: decomposed unicode-strings
 	 * - combination of all string-types from above
 	 *
-	 * @return array<array<boolean|string|integer>>
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkIfStringIsNormalized
 	 */
 	public function checkIfStringIsNormalizedDataProvider() {
 		$ascii_dejavu = 'dejavu';
@@ -141,12 +146,13 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 *
 	 * @test
 	 * @dataProvider checkIfStringIsNormalizedDataProvider
-	 * @see http://forge.typo3.org/issues/57695
 	 *
 	 * @param boolean $expectedResult
 	 * @param string $testString
 	 * @param integer $normalizationForm
 	 * @return void
+	 * @link http://forge.typo3.org/issues/57695
+	 * @see UnicodeNormalizerTest::checkIfStringIsNormalizedDataProvider
 	 */
 	public function checkIfStringIsNormalized($expectedResult, $testString, $normalizationForm) {
 		$actualResult = $this->fixture->isNormalized($testString, $normalizationForm);
@@ -164,7 +170,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	///////////////////////////////////
 
 	/**
-	 * DataProvider for test: checkStringNormalization
+	 * DataProvider for test: checkStringNormalization & checkStringFiltering
 	 *
 	 * Provides the following types of strings:
 	 *
@@ -174,7 +180,8 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 *   - … NFD: decomposed unicode-strings
 	 * - combination of all string-types from above
 	 *
-	 * @return array<array<boolean|string|integer>>
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkStringNormalization
 	 */
 	public function checkStringNormalizationDataProvider() {
 		$ascii_dejavu = 'dejavu';
@@ -263,12 +270,13 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 *
 	 * @test
 	 * @dataProvider checkStringNormalizationDataProvider
-	 * @see http://forge.typo3.org/issues/57695
 	 *
 	 * @param boolean $expectedResult
 	 * @param string $testString
 	 * @param integer $normalizationForm
 	 * @return void
+	 * @link http://forge.typo3.org/issues/57695
+	 * @see UnicodeNormalizerTest::checkStringNormalizationDataProvider
 	 */
 	public function checkStringNormalization($expectedResult, $testString, $normalizationForm) {
 		$actualResult = $this->fixture->normalize($testString, $normalizationForm);
@@ -279,5 +287,133 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		} else {
 			$this->assertSame($expectedResult, $actualResult);
 		}
+	}
+
+	//////////////////////////////////
+	// Tests concerning filter
+	//////////////////////////////////
+
+	/**
+	 * Check if unicode-normalization works for the provided types of strings
+	 *
+	 * @test
+	 * @dataProvider checkStringNormalizationDataProvider
+	 *
+	 * @param boolean $expectedResult
+	 * @param string $testString
+	 * @param integer $normalizationForm
+	 * @return void
+	 * @link http://forge.typo3.org/issues/57695
+	 * @see UnicodeNormalizerTest::checkStringNormalizationDataProvider
+	 */
+	public function checkStringFiltering($expectedResult, $testString, $normalizationForm) {
+		$actualResult = $this->fixture->filter($testString, $normalizationForm);
+		if ($expectedResult === TRUE) {
+			$this->assertSame($testString, $actualResult);
+		} elseif ($expectedResult === FALSE) {
+			$this->assertNotSame($testString, $actualResult);
+		} else {
+			$this->assertSame($expectedResult, $actualResult);
+		}
+	}
+
+	//////////////////////////////////
+	// Tests concerning normalizeArray
+	//////////////////////////////////
+
+	/**
+	 * DataProvider for test: checkNormalizeArray
+	 *
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkArrayNormalization
+	 */
+	public function checkArrayNormalizationDataProvider() {
+		$ascii_dejavu = 'dejavu';
+		// fantasy-string: déjàvü
+		$nfc_dejavu = hex2bin('64c3a96ac3a076c3bc');
+		// the same string as above, but decomposed
+		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
+		// combination of all three strings from above
+		$ascii_nfc_nfd_dejavu = $ascii_dejavu.$nfc_dejavu.$nfd_dejavu;
+
+		return array(
+			'skip normalizing an array with ASCII string' => array(
+				$ascii_dejavu, array('level1' => array('level2' => $ascii_dejavu)), UnicodeNormalizer::NONE, 'level1/level2'
+			),
+			'normalize an array with NFC string to NFD' => array(
+				$nfd_dejavu, array('level1' => array('level2' => $nfc_dejavu)), UnicodeNormalizer::NFD, 'level1/level2'
+			),
+			'normalize an array with wild string-combination to NFC' => array(
+				$nfc_dejavu, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
+			),
+		);
+	}
+
+	/**
+	 * Test: checkArrayNormalization
+	 *
+	 * @test
+	 * @dataProvider checkArrayNormalizationDataProvider
+	 *
+	 * @param string $excpectedResult
+	 * @param array $array
+	 * @param integer $normalization
+	 * @param string $path
+	 * @return void
+	 * @see UnicodeNormalizerTest::checkArrayNormalizationDataProvider
+	 */
+	public function checkArrayNormalization($excpectedResult, $array, $normalization, $path) {
+		$this->fixture->normalizeArray($array, $normalization);
+		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($array, $path));
+	}
+
+	//////////////////////////////////
+	// Tests concerning filterArray
+	//////////////////////////////////
+
+	/**
+	 * DataProvider for test: checkFilterArray
+	 *
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkArrayFiltering
+	 */
+	public function checkArrayFilteringDataProvider() {
+		$ascii_dejavu = 'dejavu';
+		// fantasy-string: déjàvü
+		$nfc_dejavu = hex2bin('64c3a96ac3a076c3bc');
+		// the same string as above, but decomposed
+		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
+		// combination of all three strings from above
+		$ascii_nfc_nfd_dejavu = $ascii_dejavu.$nfc_dejavu.$nfd_dejavu;
+
+		return array(
+			'skip filtering an array with ASCII string' => array(
+				$ascii_dejavu, array('level1' => array('level2' => $ascii_dejavu)), UnicodeNormalizer::NONE, 'level1/level2'
+			),
+			'filter an array with NFC string to NFD' => array(
+				$nfd_dejavu, array('level1' => array('level2' => $nfc_dejavu)), UnicodeNormalizer::NFD, 'level1/level2'
+			),
+			'filter an array with wild string-combination to NFC' => array(
+				$nfc_dejavu, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
+			),
+		);
+	}
+
+	/**
+	 * Test: checkArrayFiltering
+	 *
+	 * @test
+	 * @dataProvider checkArrayFilteringDataProvider
+	 *
+	 * @param string $excpectedResult
+	 * @param array $array
+	 * @param integer $normalization
+	 * @param string $path
+	 * @return void
+	 * @see UnicodeNormalizerTest::checkArrayFilteringDataProvider
+	 */
+	public function checkArrayFiltering($excpectedResult, $array, $normalization, $path) {
+		$this->fixture->filterArray($array, $normalization);
+		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($array, $path));
 	}
 }
