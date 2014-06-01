@@ -850,6 +850,16 @@ class TypoScriptFrontendController {
 	public $unicodeNormalization = 0;
 
 	/**
+	 * Unicode normalization form.
+	 *
+	 * @var integer|string
+	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer::normalizeInputArrays()
+	 * @see \TYPO3\CMS\Core\Charset\UnicodeNormalizer::filterInputArrays()
+	 * @todo Define visibility
+	 */
+	public $unicodeNormalizeInputs = '';
+
+	/**
 	 * Unicode normalization object.
 	 *
 	 * @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer
@@ -4841,8 +4851,16 @@ if (version == "n3") {
 		$this->renderCharset = $this->csConvObj->parse_charset($this->config['config']['renderCharset'] ? $this->config['config']['renderCharset'] : 'utf-8');
 		// Rendering charset of HTML page.
 		$this->metaCharset = $this->csConvObj->parse_charset($this->config['config']['metaCharset'] ? $this->config['config']['metaCharset'] : $this->renderCharset);
-		// Unicode normalization of HTML page.
-		$this->unicodeNormalization = isset($this->config['config']['unicodeNormalization']) ? $this->config['config']['unicodeNormalization'] : $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
+		if ($this->metaCharset == 'utf8') {
+			// Unicode normalization of HTML page and possibly global input arrays like $_POST too.
+			$this->unicodeNormalization = isset($this->config['config']['unicodeNormalization']) ? $this->config['config']['unicodeNormalization'] : $this->TYPO3_CONF_VARS['FE']['unicodeNormalization'];
+			// List of global input arrays to unicode-normalize.
+			$this->unicodeNormalizeInputs = isset($this->config['config']['unicodeNormalizeInputs']) ? $this->config['config']['unicodeNormalizeInputs'] : $this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'];
+		} else {
+			// Disable all normaliztation attempts
+			$this->unicodeNormalization = 0;
+			$this->unicodeNormalizeInputs = '';
+		}
 	}
 
 	/**
@@ -4880,9 +4898,9 @@ if (version == "n3") {
 		if ($this->renderCharset != $this->metaCharset) {
 			$content = $this->csConvObj->conv($content, $this->renderCharset, $this->metaCharset, TRUE);
 		}
-		if ($this->metaCharset == 'utf8' && is_object($this->getUnicodeNormalizer())) {
+		$unicodeNormalizer = $this->getUnicodeNormalizer();
+		if (is_object($unicodeNormalizer)) {
 			// Check normalization state before actually normalizing, as this might get expensive.
-			$unicodeNormalizer = $this->getUnicodeNormalizer();
 			if (!$unicodeNormalizer->isNormalized($content)) {
 				$content = $unicodeNormalizer->normalize($content);
 			}
@@ -4900,11 +4918,17 @@ if (version == "n3") {
 		if (!is_array($_POST) || empty($_POST)) {
 			return ;
 		}
-		if ($this->metaCharset == 'utf8' && is_object($this->getUnicodeNormalizer())) {
-			$this->getUnicodeNormalizer()->normalizeArray($_POST);
-			$GLOBALS['HTTP_POST_VARS'] = $_POST;
+		$unicodeNormalizer = $this->getUnicodeNormalizer();
+		if ($this->unicodeNormalizeInputs && is_object($unicodeNormalizer)) {
+			// Too weak implementation … better approach is below.
+			// $unicodeNormalizer->normalizeInputArrays($this->unicodeNormalizeInputs);
+
+			// Strict and possibly more safe alternative to normalization-only attempt from above.
+			// Sometimes more expensive, often not.
+			$unicodeNormalizer->filterInputArrays($this->unicodeNormalizeInputs);
 		}
 		if ($this->renderCharset != $this->metaCharset) {
+			// FIXME why do we only convert $_POST ?!? Why not $_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER & $_REQUEST ?
 			$this->csConvObj->convArray($_POST, $this->metaCharset, $this->renderCharset);
 			$GLOBALS['HTTP_POST_VARS'] = $_POST;
 		}
