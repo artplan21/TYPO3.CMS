@@ -418,7 +418,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @return void
 	 * @see UnicodeNormalizerTest::checkInputArrayNormalizationDataProvider
 	 */
-	public function checkInputArrayNormalizationForGetParameters($excpectedResult, $array, $normalization, $path, $input, $global) {
+	public function checkInputArrayNormalization($excpectedResult, $array, $normalization, $path, $input, $global) {
 		$GLOBALS['_' . $global] = $array;
 		$this->fixture->normalizeInputArrays($input, $normalization);
 		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($GLOBALS['_' . $global], $path));
@@ -511,7 +511,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @return void
 	 * @see UnicodeNormalizerTest::checkInputArrayFilteringDataProvider
 	 */
-	public function checkInputArrayFilteringForGetParameters($excpectedResult, $array, $normalization, $path, $input, $global) {
+	public function checkInputArrayFiltering($excpectedResult, $array, $normalization, $path, $input, $global) {
 		$GLOBALS['_' . $global] = $array;
 		$this->fixture->filterInputArrays($input, $normalization);
 		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($GLOBALS['_' . $global], $path));
