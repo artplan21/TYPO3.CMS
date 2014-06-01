@@ -297,7 +297,7 @@ class UnicodeNormalizer {
 	 * Hints:
 	 * - The W3C recommends NFC for HTML5 Output.
 	 * - Mac OSX's HFS+ filesystem uses NFD to store paths. It provides significant faster sorting algorithms. Even if you
-	 *   choose something else than NFD here HFS+ Filesystems will always use NFD and decomposes if needed.
+	 *   choose something else than NFD here HFS+ Filesystems will always use NFD and decompose path-strings if needed.
 	 *
 	 * @param string|integer $value
 	 */
