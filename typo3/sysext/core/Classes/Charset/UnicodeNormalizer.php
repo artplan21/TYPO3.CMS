@@ -275,6 +275,7 @@ class UnicodeNormalizer {
 		if (empty($inputs)) {
 			return ;
 		}
+		$inputs = array_unique($inputs);
 		$all = in_array('ALL', $inputs, TRUE);
 		foreach (array(
 			'GET' => &$_GET,
