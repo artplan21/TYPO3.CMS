@@ -362,7 +362,7 @@ class UnicodeNormalizer {
 				return self::NFD;
 			case 'KD':
 				return self::NFKD;
-// Remember: if the following lines get enabled, remove '1' from initial if-conditional and below
+// Remember: if the following lines get enabled, remove '1' from initial if-conditional and the second occurrence below
 // 			case '1':
 // 			case 'AUTO':
 // 			case 'DEFAULT':
