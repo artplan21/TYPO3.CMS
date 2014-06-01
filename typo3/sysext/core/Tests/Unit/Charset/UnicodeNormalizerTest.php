@@ -322,7 +322,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	//////////////////////////////////
 
 	/**
-	 * DataProvider for test: checkNormalizeArray
+	 * DataProvider for test: checkArrayNormalization
 	 *
 	 * @return array
 	 * @see UnicodeNormalizerTest::checkArrayNormalization
@@ -335,6 +335,8 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
 		// combination of all three strings from above
 		$ascii_nfc_nfd_dejavu = $ascii_dejavu.$nfc_dejavu.$nfd_dejavu;
+		// the same as from two above, but already normalized to form C
+		$nfc_dejavu_triple = hex2bin('64656a61767564c3a96ac3a076c3bc64c3a96ac3a076c3bc');
 
 		return array(
 			'skip normalizing an array with ASCII string' => array(
@@ -344,7 +346,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 				$nfd_dejavu, array('level1' => array('level2' => $nfc_dejavu)), UnicodeNormalizer::NFD, 'level1/level2'
 			),
 			'normalize an array with wild string-combination to NFC' => array(
-				$nfc_dejavu, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
+				$nfc_dejavu_triple, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
 			),
 		);
 	}
@@ -367,12 +369,55 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($array, $path));
 	}
 
+	/**
+	 * DataProvider for test: checkInputArrayNormalization
+	 *
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkArrayNormalizationDataProvider
+	 * @see UnicodeNormalizerTest::checkInputArrayNormalization
+	 */
+	public function checkInputArrayNormalizationDataProvider() {
+		$tests = $this->checkArrayNormalizationDataProvider();
+		$inputs = array('FILES', 'ENV', 'GET', 'POST', 'COOKIE', 'SERVER', 'REQUEST');
+		$data = array();
+		foreach ($inputs as $input) {
+			foreach($tests as $test => $arguments) {
+				$name = sprintf('for global $_%s - %s', $input, $test);
+				$data[$name] = array_merge($arguments, array($input, $input));
+				$name = sprintf('for global $_%s (via ALL) - %s', $input, $test);
+				$data[$name] = array_merge($arguments, array('ALL', $input));
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * Test: checkInputArrayNormalization
+	 *
+	 * @test
+	 * @dataProvider checkInputArrayNormalizationDataProvider
+	 *
+	 * @param string $excpectedResult
+	 * @param array $array
+	 * @param integer $normalization
+	 * @param string $path
+	 * @param string $input
+	 * @param string $global
+	 * @return void
+	 * @see UnicodeNormalizerTest::checkInputArrayNormalizationDataProvider
+	 */
+	public function checkInputArrayNormalizationForGetParameters($excpectedResult, $array, $normalization, $path, $input, $global) {
+		$GLOBALS['_' . $global] = $array;
+		$this->fixture->normalizeInputArrays($input, $normalization);
+		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($GLOBALS['_' . $global], $path));
+	}
+
 	//////////////////////////////////
 	// Tests concerning filterArray
 	//////////////////////////////////
 
 	/**
-	 * DataProvider for test: checkFilterArray
+	 * DataProvider for test: checkArrayFiltering
 	 *
 	 * @return array
 	 * @see UnicodeNormalizerTest::checkArrayFiltering
@@ -385,6 +430,8 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$nfd_dejavu = hex2bin('6465cc816a61cc807675cc88');
 		// combination of all three strings from above
 		$ascii_nfc_nfd_dejavu = $ascii_dejavu.$nfc_dejavu.$nfd_dejavu;
+		// the same as from two above, but already normalized to form C
+		$nfc_dejavu_triple = hex2bin('64656a61767564c3a96ac3a076c3bc64c3a96ac3a076c3bc');
 
 		return array(
 			'skip filtering an array with ASCII string' => array(
@@ -394,7 +441,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 				$nfd_dejavu, array('level1' => array('level2' => $nfc_dejavu)), UnicodeNormalizer::NFD, 'level1/level2'
 			),
 			'filter an array with wild string-combination to NFC' => array(
-				$nfc_dejavu, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
+				$nfc_dejavu_triple, array('level1' => array('level2' => $ascii_nfc_nfd_dejavu)), UnicodeNormalizer::NFC, 'level1/level2'
 			),
 		);
 	}
@@ -415,5 +462,46 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	public function checkArrayFiltering($excpectedResult, $array, $normalization, $path) {
 		$this->fixture->filterArray($array, $normalization);
 		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($array, $path));
+	}
+
+	/**
+	 * DataProvider for test: checkInputArrayFiltering
+	 *
+	 * @return array
+	 * @see UnicodeNormalizerTest::checkArrayFilteringDataProvider
+	 * @see UnicodeNormalizerTest::checkInputArrayFiltering
+	 */
+	public function checkInputArrayFilteringDataProvider() {
+		$tests = $this->checkArrayFilteringDataProvider();
+		$inputs = array('FILES', 'ENV', 'GET', 'POST', 'COOKIE', 'SERVER', 'REQUEST');
+		$data = array();
+		foreach ($inputs as $input) {
+			foreach($tests as $test => $arguments) {
+				$name = sprintf('for global $_%s - %s', $input, $test);
+				$data[$name] = array_merge($arguments, array($input, $input));
+				$name = sprintf('for global $_%s (via ALL) - %s', $input, $test);
+				$data[$name] = array_merge($arguments, array('ALL', $input));
+			}
+		}
+		return $data;
+	}
+
+	/**
+	 * Test: checkInputArrayFiltering
+	 *
+	 * @test
+	 * @dataProvider checkInputArrayFilteringDataProvider
+	 *
+	 * @param string $excpectedResult
+	 * @param array $array
+	 * @param integer $normalization
+	 * @param string $path
+	 * @return void
+	 * @see UnicodeNormalizerTest::checkInputArrayFilteringDataProvider
+	 */
+	public function checkInputArrayFilteringForGetParameters($excpectedResult, $array, $normalization, $path, $input, $global) {
+		$GLOBALS['_' . $global] = $array;
+		$this->fixture->filterInputArrays($input, $normalization);
+		$this->assertSame($excpectedResult, \TYPO3\CMS\Core\Utility\ArrayUtility::getValueByPath($GLOBALS['_' . $global], $path));
 	}
 }
