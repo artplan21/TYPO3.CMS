@@ -78,7 +78,7 @@ class UnicodeNormalizer {
 	 *
 	 * @link http://www.php.net/manual/en/class.normalizer.php
 	 * @param integer|string $normalization Optionally set normalization form to one of the known constants; NONE is default.
-	 * @see self::convertToNormalizationForm() for details about the supported normalization values.
+	 * @see UnicodeNormalizer::convertToNormalizationForm() for details about the supported normalization values.
 	 */
 	public function __construct($normalization = NULL) {
 		$this->registerImplementationIfNeeded($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
