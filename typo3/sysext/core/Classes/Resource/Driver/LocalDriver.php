@@ -349,12 +349,14 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 		}
 		return $cleanFileName;
 	}
+
 	/**
 	 * Makes sure the Path given as parameter is valid and if needed normalized unicode too.
 	 *
 	 * @param string $filePath The file path (including the file name!)
 	 * @return string
 	 * @throws \TYPO3\CMS\Core\Resource\Exception\InvalidPathException
+	 * @see \TYPO3\CMS\Core\Resource\Driver\AbstractHierarchicalFilesystemDriver::canonicalizeAndCheckFilePath()
 	 */
 	protected function canonicalizeAndCheckFilePath($filePath) {
 		$filePath = parent::canonicalizeAndCheckFilePath($filePath);
