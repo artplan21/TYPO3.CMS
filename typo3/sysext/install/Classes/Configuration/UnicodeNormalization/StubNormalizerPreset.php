@@ -4,7 +4,7 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
+ *  (c) 2014 Stephan Jorek (stephan.jorek@artplan21.de)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,6 +28,8 @@ use TYPO3\CMS\Install\Configuration;
 
 /**
  * Stub normalizer preset is a fallback if no other preset fits
+ *
+ * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
 class StubNormalizerPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
 

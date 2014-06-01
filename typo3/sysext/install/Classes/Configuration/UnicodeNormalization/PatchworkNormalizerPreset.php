@@ -4,7 +4,7 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 /***************************************************************
  *  Copyright notice
  *
- *  (c) 2014 Stephan Jorek <stephan.jorek@artplan21.de>
+ *  (c) 2014 Stephan Jorek (stephan.jorek@artplan21.de)
  *  All rights reserved
  *
  *  This script is part of the TYPO3 project. The TYPO3 project is
@@ -28,6 +28,8 @@ use TYPO3\CMS\Install\Configuration;
 
 /**
  * Pure php-based unicode charset normalizer preset based upon the fabulous “Patchwork-UTF8” implementation
+ *
+ * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
 class PatchworkNormalizerPreset extends Configuration\AbstractPreset {
 
