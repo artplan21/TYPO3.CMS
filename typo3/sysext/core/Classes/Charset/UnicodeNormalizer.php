@@ -128,7 +128,20 @@ class UnicodeNormalizer {
 	}
 
 	/**
-	 * Ensures that given input is (well formed and) normalized UTF-8.
+	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
+	 * are normalized UTF-8 strings if needed (but without neccessarly beeing well-formed!).
+	 *
+	 * @param string $inputs comma-seperated list of global input-arrays as described above, but without leading "$_"
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 * @see normalize()
+	 */
+	public function normalizeInputArrays($inputs, $normalization = NULL) {
+		$this->processInputArraysWithMethod('normalize', $inputs, $normalization);
+	}
+
+	/**
+	 * Ensures that given input is a well-formed and normalized UTF-8 string.
 	 *
 	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's
 	 * “Bootup::filterString()”-method and tweaked for our needs.
@@ -171,7 +184,7 @@ class UnicodeNormalizer {
 	}
 
 	/**
-	 * Ensures for all elements in ARRAY with type string to be well formed and normalized UTF-8.
+	 * Ensures for all elements in ARRAY with type string to be well-formed and normalized UTF-8 strings.
 	 * NOTICE: Array is passed by reference!
 	 *
 	 * @param array $array Input array, possibly multidimensional
@@ -185,23 +198,18 @@ class UnicodeNormalizer {
 
 	/**
 	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
-	 * are (well formed and) normalized UTF-8 if needed.
+	 * are well-formed and normalized UTF-8 strings.
 	 *
 	 * This implementation has been inspired by the contributed “Patchwork-UTF8” project's
 	 * “Bootup::filterRequestInputs()”-method and tweaked for our needs.
 	 *
+	 * @param string $inputs comma-seperated list of global input-arrays as described above, but without leading "$_"
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see \Patchwork\Utf8\Bootup::filterRequestInputs()
-	 * @todo Use this method during bootstrap ? If yes, then avoid double-encoding by TSFE->convPOSTCharset !
+	 * @see normalize()
 	 */
-	public function filterAllInputArrays($normalization = NULL) {
-		foreach (array(&$_FILES, &$_ENV, &$_GET, &$_POST, &$_COOKIE, &$_SERVER, &$_REQUEST) as $array) {
-			if (!is_array($array) || empty($array)) {
-				continue ;
-			}
-			$this->filterArray($array, $normalization);
-		}
+	public function filterInputArrays($inputs, $normalization = NULL) {
+		$this->processInputArraysWithMethod('filter', $inputs, $normalization);
 	}
 
 	/**
@@ -231,7 +239,7 @@ class UnicodeNormalizer {
 	 * Process all elements in ARRAY with type string with a method of this object.
 	 * NOTICE: Array is passed by reference!
 	 *
-	 * @param string $method the method used to process the value of all strings
+	 * @param string $method the method used to process the value of all strings (either 'normalize' or 'filter')
 	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
@@ -244,6 +252,44 @@ class UnicodeNormalizer {
 				$this->processArrayWithMethod($method, $array[$key], $normalization);
 			} elseif (is_string($value) && !$this->isNormalized($value, $normalization)) {
 				$array[$key] = call_user_method($method, $this, $value, $normalization);
+			}
+		}
+	}
+
+	/**
+	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
+	 * are (well formed and) normalized UTF-8 if needed.
+	 *
+	 * This implementation has been inspired by the contributed “Patchwork-UTF8” project's
+	 * “Bootup::filterRequestInputs()”-method and tweaked for our needs.
+	 *
+	 * @param string $method the method used to process the value of all strings (either 'normalize' or 'filter')
+	 * @param string $inputs comma-seperated list of global input-arrays as described above, but without leading "$_"
+	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
+	 * @return void
+	 * @see \Patchwork\Utf8\Bootup::filterRequestInputs()
+	 * @todo Use this method during bootstrap ? If yes, then avoid double-encoding by TSFE->convPOSTCharset !
+	 */
+	protected function processInputArraysWithMethod($method, $inputs = 'ALL', $normalization = NULL) {
+		$inputs = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', strtoupper($inputs), TRUE);
+		if (empty($inputs)) {
+			return ;
+		}
+		$all = in_array('ALL', $inputs, TRUE);
+		foreach (array(
+			'GET' => &$_GET,
+			'POST' => &$_POST,
+			'FILES' => &$_FILES,
+			'COOKIE' => &$_COOKIE,
+			'REQUEST' => &$_REQUEST,
+			'SERVER' => &$_SERVER,
+			'ENV' => &$_ENV,
+		) as $name => $array) {
+			if ($all || in_array($name, $inputs, TRUE)) {
+				if (!is_array($array) || empty($array)) {
+					continue ;
+				}
+				$this->processArrayWithMethod($method, $array, $normalization);
 			}
 		}
 	}
