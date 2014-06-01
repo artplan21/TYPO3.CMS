@@ -43,7 +43,15 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	 * @see PHPUnit_Framework_TestCase::setUp()
 	 */
 	public function setUp() {
-		$this->fixture = new UnicodeNormalizer();
+		if ((!extension_loaded('intl') || !class_exists('Normalizer', false)) &&
+			!class_exists('Patchwork\\PHP\\Shim\\Normalizer'))
+		{
+			$this->markTestSkipped('neither PHP\'s intl extension nor the pure PHP-fallback are available');
+		} elseif (!$GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']) {
+			$this->markTestSkipped('unicode-normalizer setting (SYS[unicodeNormalizer]) is empty');
+		} else {
+			$this->fixture = new UnicodeNormalizer();
+		}
 	}
 
 	///////////////////////////////////
