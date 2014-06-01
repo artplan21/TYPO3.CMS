@@ -54,7 +54,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 				$this->markTestSkipped('unicode-normalizer setting (SYS[unicodeNormalizer]) is disabled');
 			}
 		} else {
-			$this->markTestSkipped('neither PHP\'s intl extension nor the pure PHP-fallback are available');
+			$this->markTestSkipped('neither PHP\'s “intl” extension nor the pure PHP-fallback “patchwork” are available');
 		}
 	}
 
