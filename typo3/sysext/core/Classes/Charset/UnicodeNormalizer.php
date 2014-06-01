@@ -76,9 +76,9 @@ class UnicodeNormalizer {
 	/**
 	 * Constructor
 	 *
-	 * @link http://www.php.net/manual/en/class.normalizer.php
 	 * @param integer|string $normalization Optionally set normalization form to one of the known constants; NONE is default.
 	 * @see UnicodeNormalizer::convertToNormalizationForm() for details about the supported normalization values.
+	 * @see http://www.php.net/manual/en/class.normalizer.php
 	 */
 	public function __construct($normalization = NULL) {
 		$this->registerImplementationIfNeeded($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
@@ -89,10 +89,10 @@ class UnicodeNormalizer {
 	/**
 	 * Checks if the provided $input is already in the specified or current default normalization form.
 	 *
-	 * @link http://www.php.net/manual/en/normalizer.isnormalized.php
 	 * @param string $input The string to check.
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return boolean TRUE if normalized, FALSE otherwise or if an error occurred.
+	 * @see http://www.php.net/manual/en/normalizer.isnormalized.php
 	 */
 	public function isNormalized($input, $normalization = NULL) {
 		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
@@ -103,10 +103,10 @@ class UnicodeNormalizer {
 	/**
 	 * Normalizes the $input provided to the given $normalization or the default one, and returns the normalized string.
 	 *
-	 * @link http://www.php.net/manual/en/normalizer.normalize.php
 	 * @param string $input The string to normalize.
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return string|NULL The normalized string or NULL if an error occurred.
+	 * @see http://www.php.net/manual/en/normalizer.normalize.php
 	 */
 	public function normalize($input, $normalization = NULL) {
 		$normalization = (int) ($normalization === NULL ? $this->normalization : $normalization);
@@ -121,7 +121,7 @@ class UnicodeNormalizer {
 	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see normalize()
+	 * @see UnicodeNormalizer::normalize()
 	 */
 	public function normalizeArray(array & $array, $normalization = NULL) {
 		$this->processArrayWithMethod('normalize', $array, $normalization);
@@ -134,7 +134,7 @@ class UnicodeNormalizer {
 	 * @param string $inputs comma-seperated list of global input-arrays as described above, but without leading "$_"
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see normalize()
+	 * @see UnicodeNormalizer::normalizeArray()
 	 */
 	public function normalizeInputArrays($inputs, $normalization = NULL) {
 		$this->processInputArraysWithMethod('normalize', $inputs, $normalization);
@@ -143,8 +143,8 @@ class UnicodeNormalizer {
 	/**
 	 * Ensures that given input is a well-formed and normalized UTF-8 string.
 	 *
-	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's
-	 * “Bootup::filterString()”-method and tweaked for our needs.
+	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's “Bootup::filterString()”-method and
+	 * tweaked for our needs.
 	 *
 	 * @param string $input
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
@@ -190,7 +190,7 @@ class UnicodeNormalizer {
 	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see filter()
+	 * @see UnicodeNormalizer::filter()
 	 */
 	public function filterArray(array & $array, $normalization = NULL) {
 		$this->processArrayWithMethod('filter', $array, $normalization);
@@ -206,7 +206,7 @@ class UnicodeNormalizer {
 	 * @param string $inputs comma-seperated list of global input-arrays as described above, but without leading "$_"
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
-	 * @see normalize()
+	 * @see UnicodeNormalizer::filterArray()
 	 */
 	public function filterInputArrays($inputs, $normalization = NULL) {
 		$this->processInputArraysWithMethod('filter', $inputs, $normalization);
@@ -382,5 +382,41 @@ class UnicodeNormalizer {
 		}
 
 		return self::NONE;
+	}
+
+	/**
+	 * Ensures the URL is well formed UTF-8. When not, assumes Windows-1252 and re-encodes the URL to the corresponding UTF-8
+	 * equivalent.
+	 *
+	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's “Bootup::filterRequestUri()”-method
+	 * and tweaked for our needs.
+	 *
+	 * @param string $uri
+	 * @return string
+	 * @see \Patchwork\Utf8\Bootup::filterRequestUri()
+	 * @todo keep method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
+	 */
+	public static function filterUri($uri) {
+
+		if (empty($uri) || preg_match('//u', urldecode($uri))) {
+			// Empty uri given or decoded uri is already valid utf8
+			return $uri;
+		}
+
+		// encode all unencoded chars; Beware: don't prepend hostname as those need a different encoding (puny-code) !
+		$uri = preg_replace_callback(
+			'/[\x80-\xFF]+/',
+			function($m) {return urlencode($m[0]);},
+			$uri
+		);
+
+		// re-encode all encoded chars; Beware: don't prepend hostname as those need a different encoding (puny-code) !
+		$uri = preg_replace_callback(
+			'/(?:%[89A-F][0-9A-F])+/i',
+			function($m) {return urlencode(utf8_encode(urldecode($m[0])));},
+			$uri
+		);
+
+		return $uri;
 	}
 }
