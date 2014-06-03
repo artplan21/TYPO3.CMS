@@ -429,7 +429,7 @@ class Scheduler implements \TYPO3\CMS\Core\SingletonInterface {
 			}
 			$cliDispatchPath = PATH_site . 'typo3/cli_dispatch.phpsh';
 			$currentLocale = setlocale(LC_CTYPE, 0);
-			// TODO Figure out if we need/want unicode-normalization as well …
+			// TODO Feature #57695: Figure out if we need/want unicode-normalization as well …
 			if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
 				setlocale(LC_CTYPE, $GLOBALS['TYPO3_CONF_VARS']['SYS']['systemLocale']);
 			}
