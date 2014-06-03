@@ -29,46 +29,108 @@ namespace TYPO3\CMS\Core\Charset;
  * is a facade, either to “php-intl” extension's “Normalizer”-class or to the homonymous pure PHP-fallback from the faboulus
  * “Patchwork-UTF8” project.
  *
+ *   “Normalization: A process of removing alternate representations of
+ *    equivalent sequences from textual data, to convert the data into a
+ *    form that can be binary-compared for equivalence. In the Unicode
+ *    Standard, normalization refers specifically to processing to ensure
+ *    that canonical-equivalent (and/or compatibility-equivalent) strings
+ *    have unique representations.”
+ *
+ *     -- quoted from unicode glossary linked below
+ *
+ * @link http://www.unicode.org/glossary/#normalization
+ * @link http://www.php.net/manual/en/class.normalizer.php
+ * @link http://en.wikipedia.org/wiki/Unicode_equivalence
+ * @link http://stackoverflow.com/questions/7931204/what-is-normalized-utf-8-all-about
+ * @link http://www.w3.org/TR/charmod-norm/
+ * @link http://blog.whatwg.org/tag/unicode
+ * @link http://forge.typo3.org/issues/57695
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
- * @see http://forge.typo3.org/issues/57695
- * @see http://www.php.net/manual/en/class.normalizer.php
- * @see http://en.wikipedia.org/wiki/Unicode_equivalence
- * @see http://stackoverflow.com/questions/7931204/what-is-normalized-utf-8-all-about
- * @see http://www.w3.org/TR/charmod-norm/
- * @see http://blog.whatwg.org/tag/unicode
  */
 class UnicodeNormalizer {
 
-	const
-
 	/**
-	 * No decomposition/composition
+	 * No unicode decomposition/composition
+	 *
+	 * Currently for compatibillity purposes to both existing implementations.
+	 * Could also mean AUTO - It is meant to be used during future enhancements.
+	 *
+	 * @var integer
 	 */
-	NONE = 1,
+	const NONE = 1;
 
 	/**
 	 * Normalization Form D (NFD) - Canonical Decomposition
+	 *
+	 *   “A normalization form that erases any canonical differences,
+	 *    and produces a decomposed result. For example, ä is converted
+	 *    to a + umlaut in this form. This form is most often used in
+	 *    internal processing, such as in collation.”
+	 *
+	 *     -- quoted from unicode glossary linked below
+	 *
+	 * @link http://www.unicode.org/glossary/#normalization_form_d
+	 * @var integer
 	 */
-	FORM_D  = 2, NFD  = 2,
+	const NFD  = 2, FORM_D  = 2;
 
 	/**
 	 * Normalization Form KD (NFKD) - Compatibility Decomposition
+	 *
+	 *   “A normalization form that erases both canonical and compatibility
+	 *    differences, and produces a decomposed result: for example, the
+	 *    single ǆ character is converted to d + z + caron in this form.”
+	 *
+	 *     -- quoted from unicode glossary linked below
+	 *
+	 * @link http://www.unicode.org/glossary/#normalization_form_kd
+	 * @var integer
 	 */
-	FORM_KD = 3, NFKD = 3,
+	const NFKD = 3, FORM_KD = 3;
 
 	/**
 	 * Normalization Form C (NFC) - Canonical Decomposition followed by Canonical Composition
+	 *
+	 *   “A normalization form that erases any canonical differences, and
+	 *   generally produces a composed result. For example, a + umlaut is
+	 *   converted to ä in this form. This form most closely matches
+	 *   legacy usage.”
+	 *
+	 *     -- quoted from unicode glossary linked below
+	 *
+	 * @link http://www.unicode.org/glossary/#normalization_form_c
+	 * @var integer
 	 */
-	FORM_C  = 4, NFC  = 4,
+	const NFC  = 4, FORM_C  = 4;
 
 	/**
 	 * Normalization Form KC (NFKC) - Compatibility Decomposition followed by Canonical Composition
+	 *
+	 *   “A normalization form that erases both canonical and compatibility
+	 *    differences, and generally produces a composed result: for example,
+	 *    the single ǆ character is converted to d + ž in this form. This form
+	 *    is commonly used in matching.”
+	 *
+	 *     -- quoted from unicode glossary linked below
+	 *
+	 * @link http://www.unicode.org/glossary/#normalization_form_kc
+	 * @var integer
 	 */
-	FORM_KC = 5, NFKC = 5;
+	const NFKC = 5, FORM_KC = 5;
 
 	/**
-	 * Indicates which unicode normalization form to use. Must be set to one of the constants from above. Defaults to NONE.
+	 * “Normalization Form. One of the four Unicode normalization forms … namely, NFC, NFD, NFKC, and NFKD.”
+	 *     -- quoted from unicode glossary linked below
 	 *
+	 * Indicates which unicode normalization form to use. Must be set to one of the integer constants from
+	 * above. Defaults to NONE.
+	 *
+	 * @link http://www.unicode.org/glossary/#normalization_form
+	 * @see UnicodeNormalizer::NONE
+	 * @see UnicodeNormalizer::NFC
+	 * @see UnicodeNormalizer::NKC
+	 * @see UnicodeNormalizer::NFD
+	 * @see UnicodeNormalizer::NFKD
 	 * @var integer
 	 */
 	protected $normalization = self::NONE;
@@ -77,13 +139,13 @@ class UnicodeNormalizer {
 	 * Constructor
 	 *
 	 * @param integer|string $normalization Optionally set normalization form to one of the known constants; NONE is default.
-	 * @see UnicodeNormalizer::convertToNormalizationForm() for details about the supported normalization values.
+	 * @see UnicodeNormalizer::parseNormalizationForm()
 	 * @see http://www.php.net/manual/en/class.normalizer.php
 	 */
 	public function __construct($normalization = NULL) {
 		$this->registerImplementationIfNeeded($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer']);
 		$normalization = $normalization === NULL ? $GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalization'] : $normalization;
-		$this->setNormalizationForm(self::convertToNormalizationForm($normalization));
+		$this->setNormalizationForm($normalization);
 	}
 
 	/**
@@ -146,16 +208,19 @@ class UnicodeNormalizer {
 	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's “Bootup::filterString()”-method and
 	 * tweaked for our needs.
 	 *
-	 * @param string $input
+	 * @param string $input The string to filter
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
-	 * @param string $leading_combining
+	 * @param string $leading_combining The default '\xe2\x97\x8c' is equivalent to '◌' a combining character as defined in
+	 *                                  the glossary linked below. It is meant for internal usage as part of this
+	 *                                  NFC-compatible string-filter method.
 	 * @return string
+	 * @link http://www.unicode.org/glossary/#combining_character
 	 * @see \Patchwork\Utf8\Bootup::filterString()
-	 * @todo keep method in sync with \Patchwork\Utf8\Bootup::filterString()
+	 * @todo TODO Feature #57695: Keep UnicodeNormalizer::filter method in sync with \Patchwork\Utf8\Bootup::filterString()
 	 */
-	public function filter($input, $normalization = NULL, $leading_combining = '◌') {
+	public function filter($input, $normalization = NULL, $leading_combining = '\xe2\x97\x8c') {
+		// TODO Feature #57695: Really use workaround for https://bugs.php.net/65732, means to enforce unix-linebreaks, everytime and everywhere !
 		if (false !== strpos($input, "\r")) {
-			// Workaround https://bugs.php.net/65732
 			$input = str_replace("\r\n", "\n", $input);
 			$input = strtr($input, "\r", "\n");
 		}
@@ -168,7 +233,7 @@ class UnicodeNormalizer {
 				if (isset($normalized[0])) {
 					$input = $normalized;
 				} else {
-					// TODO Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it right ?
+					// TODO Feature #57695: Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it ok for to fallback to plain utf8_encode ?!?
 					$input = utf8_encode($input);
 				}
 			}
@@ -207,6 +272,7 @@ class UnicodeNormalizer {
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
 	 * @see UnicodeNormalizer::filterArray()
+	 * @todo TODO Feature #57695: Use UnicodeNormalizer::filterInputArrays method during core-bootstrap ? If yes, then avoid double-encoding by TSFE->convPOSTCharset !
 	 */
 	public function filterInputArrays($inputs, $normalization = NULL) {
 		$this->processInputArraysWithMethod('filter', $inputs, $normalization);
@@ -215,11 +281,15 @@ class UnicodeNormalizer {
 	/**
 	 * Set the current normalization-form constant to the given $normalization. Also see constructor.
 	 *
-	 * @param integer $normalization
+	 * @param integer|string $normalization
 	 * @return void
+	 * @see UnicodeNormalizer::parseNormalizationForm
 	 * @throws \InvalidArgumentException
 	 */
 	public function setNormalizationForm($normalization) {
+		if (!is_integer($normalization)) {
+			$normalization = self::parseNormalizationForm($normalization);
+		}
 		if (!in_array((int) $normalization, range(1, 5), TRUE)) {
 			throw new \InvalidArgumentException(sprintf('Unknown unicode-normalization form: %s.', $normalization), 1398603947);
 		}
@@ -268,7 +338,6 @@ class UnicodeNormalizer {
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
 	 * @see \Patchwork\Utf8\Bootup::filterRequestInputs()
-	 * @todo Use this method during bootstrap ? If yes, then avoid double-encoding by TSFE->convPOSTCharset !
 	 */
 	protected function processInputArraysWithMethod($method, $inputs = 'ALL', $normalization = NULL) {
 		$inputs = \TYPO3\CMS\Core\Utility\GeneralUtility::trimExplode(',', strtoupper($inputs), TRUE);
@@ -348,8 +417,8 @@ class UnicodeNormalizer {
 	 *
 	 * @param string|integer $value
 	 */
-	public static function convertToNormalizationForm($value) {
-		$value = trim($value);
+	public static function parseNormalizationForm($value) {
+		$value = trim((string) $value);
 		if ($value === '0' || in_array((int) $value, range(1, 5))) {
 			return max(1, (int) $value);
 		}
@@ -394,7 +463,7 @@ class UnicodeNormalizer {
 	 * @param string $uri
 	 * @return string
 	 * @see \Patchwork\Utf8\Bootup::filterRequestUri()
-	 * @todo keep method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
+	 * @todo TODO Feature #57695: keep method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
 	 */
 	public static function filterUri($uri) {
 
