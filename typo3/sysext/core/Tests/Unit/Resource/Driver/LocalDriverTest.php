@@ -1281,7 +1281,7 @@ class LocalDriverTest extends \TYPO3\CMS\Core\Tests\Unit\Resource\BaseTestCase {
 
 	/**
 	 * Set up data for sanitizeFileName tests
-	 * @todo Test all unicode-normalization forms, this seems to cover NFC only. See http://forge.typo3.org/issues/57695
+	 * @todo TODO Feature #57695: Test all unicode-normalization forms, this seems to cover NFC only, see http://forge.typo3.org/issues/57695
 	 */
 	public function setUpCharacterStrings() {
 		// Generate string containing all characters for the iso8859-1 charset, charcode greater than 127
