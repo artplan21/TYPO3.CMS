@@ -31,12 +31,12 @@ use TYPO3\CMS\Install\Configuration;
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class UnicodeNormalizationFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
+class UnicodeNormalizerFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
 
 	/**
 	 * @var string Name of feature
 	 */
-	protected $name = 'UnicodeNormalization';
+	protected $name = 'UnicodeNormalizer';
 
 	/**
 	 * @var array List of preset classes
