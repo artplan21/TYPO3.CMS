@@ -32,13 +32,10 @@ use TYPO3\CMS\Install\Configuration;
  * - Custom    utf8- or non-utf8-filesystem without unicode-normalization (“old” behaviour)
  * - NonUTF8   non-utf8 filesystem without unicode-normalization (“old” behaviour ?)
  * - UTF8      utf8 filesystem without unicode-normalization (“old” behaviour ?)
- * - UTF8Nfc   utf8 filesystem with unicode-normalization from and to NFC for paths and typo3 internally plus vice versa where needed (“new” behaviour)
- * - UTF8Nfkc  utf8 filesystem with unicode-normalization from NFKC for paths to NFC for typo3 internally plus vice versa where needed (“new” behaviour)
- * - UTF8Nfd   utf8 filesystem with unicode-normalization from NFD for paths to NFC for typo3 internally plus vice versa where needed (“new” behaviour)
- * - UTF8Nfkd  utf8 filesystem with unicode-normalization from NFKD for paths to NFC for typo3 internally plus vice versa where needed (“new” behaviour)
- * - Mac       auto-detected Apple™ HFS+ filesystem with unicode-normalization from NFD paths to NFC for typo3 internally and vice versa where needed (“new” behaviour)
- * - Linux     auto-detected utf8- or non-utf8-filesystem without unicode-normalization (“new” behaviour)
- * - Windows   auto-detected utf8- or non-utf8-filesystem without unicode-normalization (“new” behaviour)
+ * - UTF8Nfc   utf8 filesystem with unicode-normalization from and to NFC for paths and typo3 internals plus vice versa where needed (“new” behaviour)
+ * - UTF8Nfkc  utf8 filesystem with unicode-normalization from NFKC for paths to NFC for typo3 internals plus vice versa where needed (“new” behaviour)
+ * - UTF8Nfd   utf8 filesystem with unicode-normalization from NFD for paths to NFC for typo3 internals plus vice versa where needed (“new” behaviour)
+ * - UTF8Nfkd  utf8 filesystem with unicode-normalization from NFKD for paths to NFC for typo3 internals plus vice versa where needed (“new” behaviour)
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
@@ -60,9 +57,5 @@ class FilesystemFeature extends Configuration\AbstractFeature implements Configu
 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkcFilesystemPreset',
 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfdFilesystemPreset',
 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkdFilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\MacFilesystemsPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\LinuxFilesystemsPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UnixFilesystemsPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\WindowsFilesystemsPreset',
 	);
 }

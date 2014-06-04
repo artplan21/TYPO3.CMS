@@ -528,6 +528,7 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 				$iterator->next();
 				continue;
 			}
+			// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … DONE although incoming paths and filenames on OSX are normalized to NFD (verified via Normalizer::isNormalized), we don't need to touch anything here as the copying process itself produces always the same result - no matter which normalization we choose.
 			$entryIdentifier = '/' . substr($entry->getPathname(), $pathLength);
 			$entryName = PathUtility::basename($entryIdentifier);
 			if ($entry->isDir()) {
@@ -590,16 +591,20 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 			case 'ctime':
 				return filectime($fileIdentifier);
 			case 'name':
+				// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … FIXED yes - FAL's file->name was mostly a cosmetic issue, but not only - Hint: still dunno if mysql normalizes itself - fix: implementation of $this->canonicalizeAndCheckFileIdentifier above contains normalization now
 				return PathUtility::basename($fileIdentifier);
 			case 'mimetype':
 				return $this->getMimeTypeOfFile($fileIdentifier);
 			case 'identifier':
+				// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … FIXED yes - FAL's file->identifier was mostly a cosmetic issue, but not only - Hint: still dunno if mysql normalizes itself - fix: implementation of $this->canonicalizeAndCheckFileIdentifier above contains normalization now
 				return $identifier;
 			case 'storage':
 				return $this->storageUid;
 			case 'identifier_hash':
+				// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … FIXED yes - FAL's file->indentifierHash contained inconsist hashs produced LocalDriver::hashIdentifier() due to binary differences of the given (unicode-)identifier, depending on the OS. Maybe the unwanted FAL re-indexing I dicovered too - fix: implementation of LocalDriver::canonicalizeAndCheckFileIdentifier contains normalization now
 				return $this->hashIdentifier($identifier);
 			case 'folder_hash':
+				// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … FIXED yes - FAL's file->folderHash contained inconsist hashs produced LocalDriver::hashIdentifier() due to binary differences of the given (unicode-)identifier, depending on the OS. Maybe the unwanted FAL re-indexing I dicovered too - fix: implementation of LocalDriver::canonicalizeAndCheckFileIdentifier contains normalization now
 				return $this->hashIdentifier($this->getParentFolderIdentifierOfIdentifier($identifier));
 			default:
 				throw new \InvalidArgumentException(sprintf('The information "%s" is not available.', $property));
@@ -944,7 +949,9 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 		while ($iterator->valid()) {
 			/** @var $current \RecursiveDirectoryIterator */
 			$current = $iterator->current();
+			// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … DONE although incoming paths and filenames on OSX are normalized to NFD (verified via Normalizer::isNormalized), we don't need to touch anything here as copying process itself produces always the same result - no matter which normalization we choose.
 			$fileName = $current->getFilename();
+			// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … DONE although incoming paths and filenames on OSX are normalized to NFD (verified via Normalizer::isNormalized), we don't need to touch anything here as copying process itself produces always the same result - no matter which normalization we choose.
 			$itemSubPath = GeneralUtility::fixWindowsFilePath($iterator->getSubPathname());
 			if ($current->isDir() && !($fileName === '..' || $fileName === '.')) {
 				GeneralUtility::mkdir($targetFolderPath . '/' . $itemSubPath);

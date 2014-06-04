@@ -4874,7 +4874,7 @@ if (version == "n3") {
 			/*
 			// TODO Feature #57695: Using SYS[unicodeNormalizeInputs] as fallback in FE would make sence, or not ?
 			// TODO Feature #57695: Different lists of input-array normalization for SYS (inkl. CLI+BE) and FE could introduce new troubles ?!?
-			// TODO Feature #57695: Implement SYS[unicodeNormalizeInputs] in TYPO3 bootstrap
+			// TODO Feature #57695: Do we want to implement SYS[unicodeNormalizeInputs] in TYPO3 bootstrap ?
 			} elseif (isset($this->TYPO3_CONF_VARS['SYS']['unicodeNormalizeInputs'])) {
 				$this->unicodeNormalization = $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
 			*/
@@ -4942,7 +4942,7 @@ if (version == "n3") {
 	public function convPOSTCharset() {
 		$unicodeNormalizer = $this->getUnicodeNormalizer();
 		if ($this->unicodeNormalizeInputs && is_object($unicodeNormalizer)) {
-			// TODO Feature #57695: Is Unicode::normalizeInputArrays too weak … and the better approach below ?
+			// TODO Feature #57695: Is Unicode::normalizeInputArrays too weak … is the better approach below ?
 			$unicodeNormalizer->normalizeInputArrays($this->unicodeNormalizeInputs);
 
 			// Possibly more safe alternative to normalization-only attempt from above.

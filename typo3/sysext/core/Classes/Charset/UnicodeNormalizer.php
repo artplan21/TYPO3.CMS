@@ -233,7 +233,7 @@ class UnicodeNormalizer {
 				if (isset($normalized[0])) {
 					$input = $normalized;
 				} else {
-					// TODO Feature #57695: Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it ok for to fallback to plain utf8_encode ?!?
+					// TODO Feature #57695: Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it ok for us to fallback to plain utf8_encode ?!?
 					$input = utf8_encode($input);
 				}
 			}
@@ -463,7 +463,7 @@ class UnicodeNormalizer {
 	 * @param string $uri
 	 * @return string
 	 * @see \Patchwork\Utf8\Bootup::filterRequestUri()
-	 * @todo TODO Feature #57695: keep method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
+	 * @todo TODO Feature #57695: Keep UnicodeNormalizer::filterUri method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
 	 */
 	public static function filterUri($uri) {
 
