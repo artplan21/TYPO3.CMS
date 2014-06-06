@@ -694,37 +694,41 @@ class CharsetConverter {
 	 * @see convArray()
 	 * @todo Define visibility
 	 */
-	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0) {
-		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN too expensive …
+	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = UnicodeNormalizer::NONE) {
+		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN
 		if ($fromCS == $toCS) {
+			if ($toCS == 'utf-8' && UnicodeNormalizer::NONE !== $unicodeNormalization) {
+				return UnicodeNormalizer::getInstance()->normalizeTo($str, $unicodeNormalization, TRUE);
+			}
 			return $str;
 		}
 		// PHP-libs don't support fallback to SGML entities, but UTF-8 handles everything
 		if ($toCS == 'utf-8' || !$useEntityForNoChar) {
+			$conv_str = NULL;
 			switch ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_convMethod']) {
 				case 'mbstring':
 					$conv_str = mb_convert_encoding($str, $toCS, $fromCS);
-					if (FALSE !== $conv_str) {
-						return $conv_str;
-					}
 					// Returns FALSE for unsupported charsets
 					break;
 				case 'iconv':
 					$conv_str = iconv($fromCS, $toCS . '//TRANSLIT', $str);
-					if (FALSE !== $conv_str) {
-						return $conv_str;
-					}
 					break;
 				case 'recode':
 					$conv_str = recode_string($fromCS . '..' . $toCS, $str);
-					if (FALSE !== $conv_str) {
-						return $conv_str;
-					}
 					break;
+			}
+			if (NULL !== $conv_str && FALSE !== $conv_str) {
+				if (UnicodeNormalizer::NONE !== $unicodeNormalization) {
+					return UnicodeNormalizer::getInstance()->normalizeTo($conv_str, $unicodeNormalization, TRUE);
+				}
+				return $conv_str;
 			}
 		}
 		if ($fromCS != 'utf-8') {
 			$str = $this->utf8_encode($str, $fromCS);
+		}
+		if (UnicodeNormalizer::NONE !== $unicodeNormalization) {
+			$str = UnicodeNormalizer::getInstance()->normalizeTo($str, $unicodeNormalization, TRUE);
 		}
 		if ($toCS != 'utf-8') {
 			$str = $this->utf8_decode($str, $toCS, $useEntityForNoChar);
@@ -744,13 +748,13 @@ class CharsetConverter {
 	 * @see conv()
 	 * @todo Define visibility
 	 */
-	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0) {
+	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = UnicodeNormalizer::NONE) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN too expensive …
 		foreach ($array as $key => $value) {
 			if (is_array($array[$key])) {
-				$this->convArray($array[$key], $fromCS, $toCS, $useEntityForNoChar);
+				$this->convArray($array[$key], $fromCS, $toCS, $useEntityForNoChar, $unicodeNormalization);
 			} elseif (is_string($array[$key])) {
-				$array[$key] = $this->conv($array[$key], $fromCS, $toCS, $useEntityForNoChar);
+				$array[$key] = $this->conv($array[$key], $fromCS, $toCS, $useEntityForNoChar, $unicodeNormalization);
 			}
 		}
 	}
