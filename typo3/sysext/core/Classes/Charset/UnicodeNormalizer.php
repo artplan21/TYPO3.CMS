@@ -278,6 +278,8 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
 	 * NOTICE: Array is passed by reference!
 	 *
+	 * Always calls underlying implementation even if given normalization is NONE.
+	 *
 	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
 	 * @return void
@@ -307,6 +309,8 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	/**
 	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
 	 * NOTICE: Array is passed by reference!
+	 *
+	 * Does not call underlying implementation if given normalization is NONE and normalizes only if needed.
 	 *
 	 * @param array $array Input array, possibly multidimensional
 	 * @param integer $normalization An optional normalization form to check against, overriding the default; see constructor.
