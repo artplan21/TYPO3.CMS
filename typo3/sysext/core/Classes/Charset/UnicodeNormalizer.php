@@ -190,21 +190,22 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		return UnicodeNormalizerImpl::normalize($string, $normalization === NULL ? $this->normalization : $normalization);
 	}
 
-	public function normalizeNFD($string) {
-		return $this->normalize($string, self::NFD);
-	}
+	// Not really needed !
+// 	public function normalizeNFD($string) {
+// 		return $this->normalize($string, self::NFD);
+// 	}
 
-	public function normalizeNFKD($string) {
-		return $this->normalize($string, self::NFKD);
-	}
+// 	public function normalizeNFKD($string) {
+// 		return $this->normalize($string, self::NFKD);
+// 	}
 
-	public function normalizeNFC($string) {
-		return $this->normalize($string, self::NFC);
-	}
+// 	public function normalizeNFC($string) {
+// 		return $this->normalize($string, self::NFC);
+// 	}
 
-	public function normalizeNFKC($string) {
-		return $this->normalize($string, self::NFKC);
-	}
+// 	public function normalizeNFKC($string) {
+// 		return $this->normalize($string, self::NFKC);
+// 	}
 
 	/**
 	 * Normalizes the $string provided to the given $normalization or the default one, and returns the normalized string.
@@ -487,7 +488,7 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 			$normalization = self::parseNormalizationForm($normalization);
 		}
 		if (!in_array((int) $normalization, range(1, 5), TRUE)) {
-			throw new \InvalidArgumentException(sprintf('Unknown unicode-normalization form: %s.', $normalization), 1398603947);
+			throw new \Exception(sprintf('Unknown unicode-normalization form: %s.', $normalization), 1398603947);
 		}
 		$this->normalization = (int) $normalization;
 	}
