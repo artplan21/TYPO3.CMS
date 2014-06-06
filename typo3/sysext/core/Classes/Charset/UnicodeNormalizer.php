@@ -650,7 +650,6 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 			return class_alias($implementation, $implClass, TRUE);
 		}
 
-		throw new \InvalidArgumentException(sprintf('Invalid unicode-normalizer implementation: %s.', $implementation), 1399749988);
+		throw new \Exception(sprintf('Invalid unicode-normalizer implementation: %s.', $implementation), 1399749988);
 	}
-
 }
