@@ -257,21 +257,22 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		return $this->normalizeTo($string, $normalization);
 	}
 
-	public function normalizeStringToNFD($string, $onlyIfNeeded = TRUE) {
-		return $this->normalizeStringTo($string, self::NFD, $onlyIfNeeded);
-	}
+	// Not really needed !
+// 	public function normalizeStringToNFD($string, $onlyIfNeeded = TRUE) {
+// 		return $this->normalizeStringTo($string, self::NFD, $onlyIfNeeded);
+// 	}
 
-	public function normalizeStringToNFKD($string, $onlyIfNeeded = TRUE) {
-		return $this->normalizeStringTo($string, self::NFKD, $onlyIfNeeded);
-	}
+// 	public function normalizeStringToNFKD($string, $onlyIfNeeded = TRUE) {
+// 		return $this->normalizeStringTo($string, self::NFKD, $onlyIfNeeded);
+// 	}
 
-	public function normalizeStringToNFC($string, $onlyIfNeeded = TRUE) {
-		return $this->normalizeStringTo($string, self::NFC, $onlyIfNeeded);
-	}
+// 	public function normalizeStringToNFC($string, $onlyIfNeeded = TRUE) {
+// 		return $this->normalizeStringTo($string, self::NFC, $onlyIfNeeded);
+// 	}
 
-	public function normalizeStringToNFKC($string, $onlyIfNeeded = TRUE) {
-		return $this->normalizeStringTo($string, self::NFKC, $onlyIfNeeded);
-	}
+// 	public function normalizeStringToNFKC($string, $onlyIfNeeded = TRUE) {
+// 		return $this->normalizeStringTo($string, self::NFKC, $onlyIfNeeded);
+// 	}
 
 	/**
 	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
