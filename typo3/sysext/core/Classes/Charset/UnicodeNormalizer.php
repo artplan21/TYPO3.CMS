@@ -604,8 +604,8 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 // 			case 'AUTO':
 // 			case 'DEFAULT':
 			case 'C':
-			case 'PRECOMPOSE':
-			case 'PRECOMPOSED':
+			case 'COMPOSE':
+			case 'COMPOSED':
 				return self::NFC;
 			case 'KC':
 				return self::NFKC;
