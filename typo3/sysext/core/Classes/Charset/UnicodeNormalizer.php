@@ -285,21 +285,22 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		$this->processArrayWithMethod('normalize', $array, $normalization);
 	}
 
-	public function normalizeArrayNFD(array & $array) {
-		$this->normalizeArray($array, self::NFD);
-	}
+	// Not really needed
+// 	public function normalizeArrayNFD(array & $array) {
+// 		$this->normalizeArray($array, self::NFD);
+// 	}
 
-	public function normalizeArrayNFKD(array & $array) {
-		$this->normalizeArray($array, self::NFKD);
-	}
+// 	public function normalizeArrayNFKD(array & $array) {
+// 		$this->normalizeArray($array, self::NFKD);
+// 	}
 
-	public function normalizeArrayNFC(array & $array) {
-		return $this->normalizeArray($array, self::NFC);
-	}
+// 	public function normalizeArrayNFC(array & $array) {
+// 		return $this->normalizeArray($array, self::NFC);
+// 	}
 
-	public function normalizeArrayNFKC(array & $array) {
-		$this->normalizeArray($array, self::NFKC);
-	}
+// 	public function normalizeArrayNFKC(array & $array) {
+// 		$this->normalizeArray($array, self::NFKC);
+// 	}
 
 	/**
 	 * Normalize all elements in ARRAY with type string to given unicode-normalization-form.
@@ -316,21 +317,22 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		}
 	}
 
-	public function normalizeArrayToNFD(array & $array) {
-		$this->normalizeArrayTo($array, self::NFD);
-	}
+	// Not really needed
+// 	public function normalizeArrayToNFD(array & $array) {
+// 		$this->normalizeArrayTo($array, self::NFD);
+// 	}
 
-	public function normalizeArrayToNFKD(array & $array) {
-		$this->normalizeArrayTo($array, self::NFKD);
-	}
+// 	public function normalizeArrayToNFKD(array & $array) {
+// 		$this->normalizeArrayTo($array, self::NFKD);
+// 	}
 
-	public function normalizeArrayToNFC(array & $array) {
-		$this->normalizeArrayTo($array, self::NFC);
-	}
+// 	public function normalizeArrayToNFC(array & $array) {
+// 		$this->normalizeArrayTo($array, self::NFC);
+// 	}
 
-	public function normalizeArrayToNFKC(array & $array) {
-		$this->normalizeArrayTo($array, self::NFKC);
-	}
+// 	public function normalizeArrayToNFKC(array & $array) {
+// 		$this->normalizeArrayTo($array, self::NFKC);
+// 	}
 
 	/**
 	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
@@ -389,14 +391,13 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 				if (isset($normalized[0])) {
 					$string = $normalized;
 				} else {
-					// TODO Feature #57695: Patchwork-UTF8 implementation handles cp1252 as a fallback too, but we don't do so. Is it ok for us to fallback to plain utf8_encode ?!?
+					// TODO Feature #57695: Patchwork's original \Patchwork\Utf8\Bootup::filter() implementation assumes Windows-CP1252 as fallback … figure out why, as our code uses utf8_encode's ISO-8859-1.
 					$string = utf8_encode($string);
 				}
 			}
 
 			if ($string[0] >= "\x80" && isset($normalized[0], $leading_combining[0]) && preg_match('/^\p{Mn}/u', $string)) {
-				// Prevent leading combining chars
-				// for NFC-safe concatenations.
+				// Prevent leading combining chars for NFC-safe concatenations.
 				$string = $leading_combining . $string;
 			}
 		}
@@ -435,34 +436,37 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	}
 
 	/**
-	 * Ensures the URL is well formed UTF-8. When not, assumes Windows-1252 and re-encodes the URL to the corresponding UTF-8
-	 * equivalent.
+	 * Ensures the URL is well formed UTF-8. When not, assumes ISO-8859-1 and
+	 * re-encodes the URL to the corresponding UTF-8 encoded equivalent.
 	 *
-	 * This implementation has been taken from the contributed “Patchwork-UTF8” project's “Bootup::filterRequestUri()”-method
-	 * and tweaked for our needs.
+	 * This implementation has been taken from the contributed “Patchwork-UTF8”
+	 * project's “Bootup::filterRequestUri()”-method and tweaked for our needs.
+	 *
 	 *
 	 * @param string $uri
 	 * @return string
 	 * @see \Patchwork\Utf8\Bootup::filterRequestUri()
 	 * @todo TODO Feature #57695: Keep UnicodeNormalizer::filterUri method in sync with \Patchwork\Utf8\Bootup::filterRequestUri()
+	 * @todo TODO Feature #57695: Patchwork's original \Patchwork\Utf8\Bootup::filterRequestUri() implementation assumes Windows-CP1252 as fallback … figure out why, as our code uses utf8_encode's ISO-8859-1.
 	 */
 	public function filterUri($uri) {
 
+		// is uri empty or is the url-decoded uri already valid utf8 ?
 		if (empty($uri) || preg_match('//u', urldecode($uri))) {
-			// Empty uri given or decoded uri is already valid utf8
 			return $uri;
 		}
 
-		// encode all unencoded chars; Beware: don't prepend hostname as those need a different encoding (puny-code) !
+		// encode all unencoded single-byte characters from 128 to 255
 		$uri = preg_replace_callback(
 			'/[\x80-\xFF]+/',
 			function($m) {return urlencode($m[0]);},
 			$uri
 		);
 
-		// re-encode all encoded chars; Beware: don't prepend hostname as those need a different encoding (puny-code) !
+		// encode all unencoded multibyte-byte characters from 128 and above
 		$uri = preg_replace_callback(
 			'/(?:%[89A-F][0-9A-F])+/i',
+			// url-decode -> utf8-encode -> url-encode
 			function($m) {return urlencode(utf8_encode(urldecode($m[0])));},
 			$uri
 		);
