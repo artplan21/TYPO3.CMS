@@ -71,11 +71,6 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 	 */
 	protected $charsetConversion;
 
-	/**
-	 * @var \TYPO3\CMS\Core\Charset\UnicodeNormalizer
-	 */
-	protected $unicodeNormalizer;
-
 	/** @var array */
 	protected $mappingFolderNameToRole = array(
 		'_recycler_' => FolderInterface::ROLE_RECYCLER,
@@ -316,12 +311,12 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 	public function sanitizeFileName($fileName, $charset = '') {
 		// Handle UTF-8 characters
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
+
+			$fileName = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
+				->normalizeStringTo($fileName, $GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']);
+
 			// Allow ".", "-", 0-9, a-z, A-Z and everything beyond U+C0 (latin capital letter a with grave)
 			$cleanFileName = preg_replace('/[' . self::UNSAFE_FILENAME_CHARACTER_EXPRESSION . ']/u', '_', trim($fileName));
-			$unicodeNormalizer = $this->getUnicodeNormalizer();
-			if (is_object($unicodeNormalizer) && !$unicodeNormalizer->isNormalized($cleanFileName)) {
-				$cleanFileName = $unicodeNormalizer->normalize($cleanFileName);
-			}
 		} else {
 			// Define character set
 			if (!$charset) {
@@ -360,9 +355,9 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 	 */
 	protected function canonicalizeAndCheckFilePath($filePath) {
 		$filePath = parent::canonicalizeAndCheckFilePath($filePath);
-		$unicodeNormalizer = $this->getUnicodeNormalizer();
-		if (is_object($unicodeNormalizer) && !$unicodeNormalizer->isNormalized($filePath)) {
-			$filePath = $unicodeNormalizer->normalize($filePath);
+		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
+			$filePath = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
+				->normalizeStringTo($filePath, $GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']);
 		}
 		return $filePath;
 	}
@@ -1241,22 +1236,6 @@ class LocalDriver extends AbstractHierarchicalFilesystemDriver {
 			}
 		}
 		return $this->charsetConversion;
-	}
-
-	/**
-	 * Gets the unicode-normalization object.
-	 *
-	 * @return \TYPO3\CMS\Core\Charset\UnicodeNormalizer
-	 */
-	protected function getUnicodeNormalizer() {
-		if (!isset($this->unicodeNormalizer) && 1 < $GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']) {
-			// The object may not exist yet, so we need to create it now.
-			$this->unicodeNormalizer = GeneralUtility::makeInstance(
-				'TYPO3\\CMS\\Core\\Charset\\UnicodeNormalizer',
-				$GLOBALS['TYPO3_CONF_VARS']['SYS']['UTF8filesystem']
-			);
-		}
-		return $this->unicodeNormalizer;
 	}
 
 	/**

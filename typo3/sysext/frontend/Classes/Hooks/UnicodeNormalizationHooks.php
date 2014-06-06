@@ -27,9 +27,6 @@ namespace TYPO3\CMS\Frontend\Hooks;
  *  This copyright notice MUST APPEAR in all copies of the script!
  ***************************************************************/
 
-use TYPO3\CMS\Core\Charset\UnicodeNormalizer;
-use TYPO3\CMS\Core\Utility\HttpUtility;
-
 /**
  * Unicode-Normalization related hooks
  *
@@ -47,16 +44,16 @@ class UnicodeNormalizationHooks {
 	public function hook_redirectRequestUriIfNeeded($params, \TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController $pObj) {
 		$uri = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('REQUEST_URI');
 		if ($uri) {
-			$normalizedUri = UnicodeNormalizer::filterUri($uri);
-			if ($normalizedUri !== '' && $normalizedUri !== $uri) {
+			$normalizedUri = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()->filterUri($uri);
+			if ('' !== $normalizedUri && $uri !== $normalizedUri) {
 				if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-					// FIXME this redirect will break any data-submissions
-					$headerCode = HttpUtility::HTTP_STATUS_303;
+					// TODO Feature #57695: This redirect will break any data-submissions, but FE has the same behaviour.
+					$headerCode = \TYPO3\CMS\Core\Utility\HttpUtility::HTTP_STATUS_303;
 				} else {
-					$headerCode = HttpUtility::HTTP_STATUS_301;
+					$headerCode = \TYPO3\CMS\Core\Utility\HttpUtility::HTTP_STATUS_301;
 				}
 				$url = \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('TYPO3_REQUEST_HOST') . $normalizedUri;
-				HttpUtility::redirect($url, $headerCode);
+				\TYPO3\CMS\Core\Utility\HttpUtility::redirect($url, $headerCode);
 			}
 		}
 	}
