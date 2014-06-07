@@ -694,11 +694,12 @@ class CharsetConverter {
 	 * @see convArray()
 	 * @todo Define visibility
 	 */
-	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = UnicodeNormalizer::NONE) {
+	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = NULL) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN
 		if ($fromCS == $toCS) {
-			if ($toCS == 'utf-8' && UnicodeNormalizer::NONE !== $unicodeNormalization) {
-				return UnicodeNormalizer::getInstance()->normalizeTo($str, $unicodeNormalization, TRUE);
+			if ($toCS == 'utf-8' && $unicodeNormalization) {
+				return \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
+					->normalizeStringTo($str, $unicodeNormalization);
 			}
 			return $str;
 		}
@@ -727,8 +728,9 @@ class CharsetConverter {
 		if ($fromCS != 'utf-8') {
 			$str = $this->utf8_encode($str, $fromCS);
 		}
-		if (UnicodeNormalizer::NONE !== $unicodeNormalization) {
-			$str = UnicodeNormalizer::getInstance()->normalizeTo($str, $unicodeNormalization, TRUE);
+		if ($unicodeNormalization) {
+			$str = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
+				->normalizeStringTo($str, $unicodeNormalization);
 		}
 		if ($toCS != 'utf-8') {
 			$str = $this->utf8_decode($str, $toCS, $useEntityForNoChar);
@@ -748,7 +750,7 @@ class CharsetConverter {
 	 * @see conv()
 	 * @todo Define visibility
 	 */
-	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = UnicodeNormalizer::NONE) {
+	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = NULL) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN too expensive …
 		foreach ($array as $key => $value) {
 			if (is_array($array[$key])) {
