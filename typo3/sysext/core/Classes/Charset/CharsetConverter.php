@@ -719,8 +719,9 @@ class CharsetConverter {
 					break;
 			}
 			if (NULL !== $conv_str && FALSE !== $conv_str) {
-				if (UnicodeNormalizer::NONE !== $unicodeNormalization) {
-					return UnicodeNormalizer::getInstance()->normalizeTo($conv_str, $unicodeNormalization, TRUE);
+				if ($unicodeNormalization) {
+					return \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
+						->normalizeTo($conv_str, $unicodeNormalization, TRUE);
 				}
 				return $conv_str;
 			}
