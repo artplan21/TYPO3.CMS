@@ -1117,6 +1117,19 @@ Hint: The W3C recommends NFC for HTML5 Output.
 ]]></description>
 			<default><![CDATA[0]]></default>
 		</property>
+                <property name="unicodeNormalizeInputs" type="string">
+                        <description><![CDATA[Unicode normalization-form of the given global input arrays () page content. Only relevant if ".metaCharset" is utf8 and ".unicodeNormalization" have been enabled.
+
+A comma-seperated list of global input-arrays as described below, but without leading "$_".
+
+Ensures that "ALL" or the given (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST) are well-formed and normalized UTF-8 strings.
+
+This implementation has been inspired by the contributed “Patchwork-UTF8” project's “Bootup::filterRequestInputs()”-method and tweaked for our needs.
+
+Hint: The W3C recommends Unicode's Normalization Form C for HTML5 Input.
+]]></description>
+                        <default><![CDATA[0]]></default>
+                </property>
 		<property name="uniqueLinkVars" type="boolean">
 			<description><![CDATA[It might happen that TYPO3 generates links with the same parameter twice or more. This is no problem because only the last parameter is used, thus the problem is just a cosmetical one.]]></description>
 			<default><![CDATA[0]]></default>
