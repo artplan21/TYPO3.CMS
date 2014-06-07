@@ -1103,14 +1103,14 @@ Unicode-Normalization is a process that involves transforming characters and seq
 Examples of supported "unicodeNormalization" values:
 - case-insensitive abbreviation strings: D, KD, C, KC, NFC, nfc, FORM_C, formKC, …
 - integers from 0 to 5, which are: 0 = NONE, 1 = AUTO, 2 = NFD, 3 = NFKD, 4 = NFC, 5 = NFKC
-- case-insensitive keywords: none, default, disable(d), precompose(d), decompose(d)
+- case-insensitive keywords: none, default, disable(d), compose(d), decompose(d)
 
 Meaning of the "unicodeNormalization" values:
 - 0: No Unicode-Normalization (NONE, disable) - disables any normalization-attempts
 - 1: Default Unicode-Normalization (AUTO, default) - currently it disables any normalization-attempts too, but future implementations may automatically handle the normalization if needed
 - 2: Normalization Form D (NFD, decompose) - canonical decomposition
 - 3: Normalization Form KD (NFKD) - compatibility decomposition
-- 4: Normalization Form C (NFC, precompose) - canonical decomposition followed by canonical composition
+- 4: Normalization Form C (NFC, compose) - canonical decomposition followed by canonical composition
 - 5: Normalization Form KC (NFKC) - compatibility decomposition followed by canonical composition
 
 Hint: The W3C recommends NFC for HTML5 Output.
