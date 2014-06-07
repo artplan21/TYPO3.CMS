@@ -1,6 +1,6 @@
 {
 	"require" : {
-		"patchwork/utf8" : "~1.1@stable"
+		"patchwork/utf8" : "@stable"
 	},
 	"config" : {
 		"vendor-dir" : "."
