@@ -426,7 +426,7 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	}
 
 	/**
-	 * Ensures all that all (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
+	 * Ensures that "ALL" or the given (user-)inputs ($_FILES, $_ENV, $_GET, $_POST, $_COOKIE, $_SERVER, $_REQUEST)
 	 * are well-formed and normalized UTF-8 strings.
 	 *
 	 * This implementation has been inspired by the contributed “Patchwork-UTF8” project's
