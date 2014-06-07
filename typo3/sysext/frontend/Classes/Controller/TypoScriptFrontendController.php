@@ -4854,27 +4854,32 @@ if (version == "n3") {
 			*/
 			}
 
-			$this->unicodeNormalization = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::parseNormalizationForm($unicodeNormalization);
-
-			// List of global input arrays to unicode-normalize.
-			if (isset($this->config['config']['unicodeNormalizeInputs'])) {
-				$this->unicodeNormalizeInputs = $this->config['config']['unicodeNormalizeInputs'];
-			} elseif (isset($this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'])) {
-				$this->unicodeNormalizeInputs = $this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'];
-			/*
-			// TODO Feature #57695: Using SYS[unicodeNormalizeInputs] as fallback in FE would make sence, or not ?
-			// TODO Feature #57695: Different lists of input-array normalizations for SYS (inkl. CLI+BE) and FE could introduce new troubles ?!?
-			// TODO Feature #57695: Do we want to implement SYS[unicodeNormalizeInputs] in TYPO3 bootstrap ?
-			} elseif (isset($this->TYPO3_CONF_VARS['SYS']['unicodeNormalizeInputs'])) {
-				$this->unicodeNormalization = $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
-			*/
+			$unicodeNormalization = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::parseNormalizationForm($unicodeNormalization);
+			if ($unicodeNormalization === \TYPO3\CMS\Core\Charset\UnicodeNormalizer::NONE) {
+				// Disable all normalization attempts
+				$this->unicodeNormalization = 0;
+				$this->unicodeNormalizeInputs = '';
+			} else {
+				$this->unicodeNormalization = $unicodeNormalization;
+				// List of global input arrays to unicode-normalize.
+				if (isset($this->config['config']['unicodeNormalizeInputs'])) {
+					$this->unicodeNormalizeInputs = $this->config['config']['unicodeNormalizeInputs'];
+				} elseif (isset($this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'])) {
+					$this->unicodeNormalizeInputs = $this->TYPO3_CONF_VARS['FE']['unicodeNormalizeInputs'];
+				/*
+				// TODO Feature #57695: Using SYS[unicodeNormalizeInputs] as fallback in FE would make sence, or not ?
+				// TODO Feature #57695: Different lists of input-array normalizations for SYS (inkl. CLI+BE) and FE could introduce new troubles ?!?
+				// TODO Feature #57695: Do we want to implement SYS[unicodeNormalizeInputs] in TYPO3 bootstrap ?
+				} elseif (isset($this->TYPO3_CONF_VARS['SYS']['unicodeNormalizeInputs'])) {
+					$this->unicodeNormalization = $this->TYPO3_CONF_VARS['SYS']['unicodeNormalization'];
+				*/
+				}
 			}
 
 		} else {
 			// Disable all normalization attempts
 			$this->unicodeNormalization = 0;
 			$this->unicodeNormalizeInputs = '';
-			$this->unicodeNormalizer = NULL;
 		}
 	}
 
@@ -4922,7 +4927,7 @@ if (version == "n3") {
 	 * @return void
 	 */
 	public function convPOSTCharset() {
-		if ($this->unicodeNormalizeInputs && $this->unicodeNormalization /* is 0 if $this->metaCharset is utf8*/) {
+		if ($this->unicodeNormalizeInputs && $this->unicodeNormalization) {
 			// TODO Feature #57695: Is UnicodeNormalizer::normalizeInputArrays too weak … is the better approach below ?
 			\TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
 				->normalizeInputArraysTo($this->unicodeNormalizeInputs, $this->unicodeNormalization);
