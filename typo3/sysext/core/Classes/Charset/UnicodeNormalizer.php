@@ -224,21 +224,22 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		return $this->normalize($string, $normalization);
 	}
 
-	public function normalizeToNFD($string) {
-		return $this->normalizeTo($string, self::NFD);
-	}
+	// Not really needed !
+// 	public function normalizeToNFD($string) {
+// 		return $this->normalizeTo($string, self::NFD);
+// 	}
 
-	public function normalizeToNFKD($string) {
-		return $this->normalizeTo($string, self::NFKD);
-	}
+// 	public function normalizeToNFKD($string) {
+// 		return $this->normalizeTo($string, self::NFKD);
+// 	}
 
-	public function normalizeToNFC($string) {
-		return $this->normalizeTo($string, self::NFC);
-	}
+// 	public function normalizeToNFC($string) {
+// 		return $this->normalizeTo($string, self::NFC);
+// 	}
 
-	public function normalizeToNFKC($string) {
-		return $this->normalizeTo($string, self::NFKC);
-	}
+// 	public function normalizeToNFKC($string) {
+// 		return $this->normalizeTo($string, self::NFKC);
+// 	}
 
 	/**
 	 * Normalizes the $string provided to the given $normalization or the default one, and returns the normalized string.
