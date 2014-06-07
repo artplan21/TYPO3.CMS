@@ -49,7 +49,7 @@ class UnicodeNormalizerTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 			if (isset($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'])
 			    && in_array($GLOBALS['TYPO3_CONF_VARS']['SYS']['unicodeNormalizer'], array('intl', 'patchwork')))
 			{
-				$this->fixture = new UnicodeNormalizer();
+				$this->fixture = UnicodeNormalizer::getInstance();
 			} else {
 				$this->markTestSkipped('unicode-normalizer setting (SYS[unicodeNormalizer]) is disabled');
 			}
