@@ -51,11 +51,11 @@ class FilesystemFeature extends Configuration\AbstractFeature implements Configu
 	 */
 	protected $presetRegistry = array(
 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\CustomFilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\NonUTF8FilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8FilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfcFilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkcFilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfdFilesystemPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkdFilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\NonUTF8FilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8FilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfcFilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkcFilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfdFilesystemPreset',
+// 		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\UTF8NfkdFilesystemPreset',
 	);
 }

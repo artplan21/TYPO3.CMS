@@ -27,16 +27,16 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Stub normalizer preset is a fallback if no other preset fits
+ * Custom filesystem preset is a fallback if no other preset fits
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class StubNormalizerPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
+class CustomFilesystemPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
 
 	/**
 	 * @var array Configuration values handled by this preset
 	 */
 	protected $configurationValues = array(
-		'SYS/unicodeNormalizer' => '',
+// 		'SYS/UTF8filesystem' => 0,
 	);
 }
