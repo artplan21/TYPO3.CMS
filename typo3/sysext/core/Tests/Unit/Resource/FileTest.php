@@ -1,35 +1,24 @@
 <?php
 namespace TYPO3\CMS\Core\Tests\Unit\Resource;
 
-/***************************************************************
- * Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- * (c) 2011-2013 Andreas Wolf <andreas.wolf@ikt-werk.de>
- * All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- * This script is part of the TYPO3 project. The TYPO3 project is
- * free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- *
- * This script is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 use TYPO3\CMS\Core\Resource\ResourceStorage;
 
 /**
  * Testcase for the file class of the TYPO3 FAL
  *
- * @author Andreas Wolf <andreas.wolf@ikt-werk.de>
- * @todo Many, many, many tests are skipped in this test case...
+ * @author Andreas Wolf <andreas.wolf@ikt-werk.de>.
  */
 class FileTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
@@ -64,30 +53,6 @@ class FileTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 	protected function prepareFixture() {
 		$fixture = new \TYPO3\CMS\Core\Resource\File(array('testfile'), $this->storageMock);
 		return $fixture;
-	}
-
-	/**
-	 * @test
-	 * @todo Old code getAvailableProperties() needs to be replaced by current behaviour
-	 */
-	public function propertiesPassedToConstructorAreAvailableViaGenericGetter() {
-		$this->markTestSkipped('TYPO3\\CMS\\Core\\Resource\\File::getAvailableProperties() does not exist');
-		$properties = array(
-			uniqid() => uniqid(),
-			uniqid() => uniqid(),
-			'uid' => 1
-		);
-		$fixture = new \TYPO3\CMS\Core\Resource\File($properties, $this->storageMock);
-		$availablePropertiesBackup = \TYPO3\CMS\Core\Resource\File::getAvailableProperties();
-		\TYPO3\CMS\Core\Resource\File::setAvailableProperties(array_keys($properties));
-		foreach ($properties as $key => $value) {
-			$this->assertTrue($fixture->hasProperty($key));
-			$this->assertEquals($value, $fixture->getProperty($key));
-		}
-		$this->assertFalse($fixture->hasProperty(uniqid()));
-		\TYPO3\CMS\Core\Resource\File::setAvailableProperties($availablePropertiesBackup);
-		$this->setExpectedException('InvalidArgumentException', '', 1314226805);
-		$fixture->getProperty(uniqid());
 	}
 
 	/**
@@ -223,117 +188,6 @@ class FileTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$fixture->moveTo($targetFolder);
 	}
 
-	/**
-	 * @test
-	 */
-	public function openCorrectlyOpensFileInDriver() {
-		$this->markTestSkipped();
-		$fixture = $this->prepareFixture();
-		$fileMode = 'invalidMode';
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->atLeastOnce())->method('getFileHandle')->with($this->equalTo($fixture), $this->equalTo($fileMode));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->open($fileMode);
-	}
-
-	/**
-	 * @test
-	 */
-	public function isOpenReturnsCorrectValuesForClosedAndOpenFile() {
-		$this->markTestSkipped();
-		$fixture = $this->prepareFixture();
-		$fileMode = 'r';
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockFileHandle->expects($this->any())->method('isOpen')->will($this->returnValue(TRUE));
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$fixture->setStorageDriver($mockDriver);
-		$this->assertFalse($fixture->isOpen());
-		$fixture->open($fileMode);
-		$this->assertTrue($fixture->isOpen());
-	}
-
-	/**
-	 * @test
-	 */
-	public function fileIsCorrectlyClosed() {
-		$this->markTestSkipped();
-		$fixture = $this->prepareFixture();
-		$fileMode = 'r';
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockFileHandle->expects($this->once())->method('close');
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->open($fileMode);
-		$fixture->close();
-		$this->assertFalse($fixture->isOpen());
-	}
-
-	/**
-	 * @test
-	 */
-	public function readReturnsRequestedContentsFromDriver() {
-		$this->markTestSkipped();
-		$fixture = $this->prepareFixture();
-		$fileMode = 'r';
-		$fileContents = 'Some random file contents.';
-		$bytesToRead = 10;
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockFileHandle->expects($this->any())->method('isOpen')->will($this->returnValue(TRUE));
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$mockDriver->expects($this->once())->method('readFromFile')->with($this->anything(), $this->equalTo($bytesToRead))->will($this->returnValue(substr($fileContents, 0, $bytesToRead)));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->open($fileMode);
-		$this->assertEquals(substr($fileContents, 0, $bytesToRead), $fixture->read($bytesToRead));
-	}
-
-	/**
-	 * @test
-	 */
-	public function readFailsIfFileIsClosed() {
-		$this->markTestSkipped();
-		$this->setExpectedException('\\RuntimeException', '', 1299863431);
-		$fixture = $this->prepareFixture();
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->read(1);
-	}
-
-	/**
-	 * @test
-	 */
-	public function writePassesContentsToDriver() {
-		$this->markTestSkipped();
-		$fixture = $this->prepareFixture();
-		$fileMode = 'r+';
-		$fileContents = 'Some random file contents.';
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockFileHandle->expects($this->any())->method('isOpen')->will($this->returnValue(TRUE));
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$mockDriver->expects($this->once())->method('writeToFile')->with($this->anything(), $this->equalTo($fileContents))->will($this->returnValue(TRUE));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->open($fileMode);
-		$this->assertTrue($fixture->write($fileContents));
-	}
-
-	/**
-	 * @test
-	 */
-	public function writeFailsIfFileIsClosed() {
-		$this->markTestSkipped();
-		$this->setExpectedException('\\RuntimeException', '', 1299863432);
-		$fixture = $this->prepareFixture();
-		$mockFileHandle = $this->getMock('TYPO3\\CMS\\Core\\Resource\\FileHandle', array(), array(), '', FALSE);
-		$mockDriver = $this->getMockForAbstractClass('t3lib_file_driver_Abstract');
-		$mockDriver->expects($this->any())->method('getFileHandle')->will($this->returnValue($mockFileHandle));
-		$fixture->setStorageDriver($mockDriver);
-		$fixture->write('asdf');
-	}
 
 	public function filenameExtensionDataProvider() {
 		return array(

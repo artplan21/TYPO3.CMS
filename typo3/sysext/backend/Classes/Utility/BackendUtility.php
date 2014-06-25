@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Backend\Utility;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\IconUtility;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
@@ -1176,6 +1163,7 @@ class BackendUtility {
 			foreach ($rootLine as $k => $v) {
 				$TSdataArray['uid_' . $v['uid']] = $v['TSconfig'];
 			}
+			$TSdataArray = static::emitGetPagesTSconfigPreIncludeSignal($TSdataArray, $id, $rootLine, $returnPartArray);
 			$TSdataArray = TypoScriptParser::checkIncludeLines_array($TSdataArray);
 			if ($returnPartArray) {
 				return $TSdataArray;
@@ -1506,21 +1494,15 @@ class BackendUtility {
 		}
 		$thumbData = '';
 		// FAL references
-		if ($tcaConfig['type'] === 'inline') {
-			$sortingField = isset($tcaConfig['foreign_sortby']) ? $tcaConfig['foreign_sortby'] : '';
-			$referenceUids = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
-				'uid',
-				'sys_file_reference',
-				'tablenames = ' . $GLOBALS['TYPO3_DB']->fullQuoteStr($table, 'sys_file_reference')
-					. ' AND fieldname=' . $GLOBALS['TYPO3_DB']->fullQuoteStr($field, 'sys_file_reference')
-					. ' AND uid_foreign=' . (int)$row['uid']
-					. self::deleteClause('sys_file_reference')
-					. self::versioningPlaceholderClause('sys_file_reference'),
-				'',
-				$sortingField
-			);
+		if ($tcaConfig['type'] === 'inline' && $tcaConfig['foreign_table'] === 'sys_file_reference') {
+			/** @var $relationHandler \TYPO3\CMS\Core\Database\RelationHandler */
+			$relationHandler = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Database\\RelationHandler');
+			$relationHandler->start($row[$field], $tcaConfig['foreign_table'], $tcaConfig['MM'], $row['uid'], $table, $tcaConfig);
+			$relationHandler->processDeletePlaceholder();
+			$referenceUids = $relationHandler->tableArray[$tcaConfig['foreign_table']];
+
 			foreach ($referenceUids as $referenceUid) {
-				$fileReferenceObject = ResourceFactory::getInstance()->getFileReferenceObject($referenceUid['uid']);
+				$fileReferenceObject = ResourceFactory::getInstance()->getFileReferenceObject($referenceUid);
 				$fileObject = $fileReferenceObject->getOriginalFile();
 
 				if ($fileObject->isMissing()) {
@@ -3926,9 +3908,22 @@ class BackendUtility {
 		if ($workspace != 0) {
 			foreach ($GLOBALS['TCA'] as $tableName => $cfg) {
 				if ($tableName != 'pages' && $cfg['ctrl']['versioningWS']) {
+					$joinStatement = 'A.t3ver_oid=B.uid';
+					// Consider records that are moved to a different page
+					if (self::isTableMovePlaceholderAware($tableName)) {
+						$movePointer = new VersionState(VersionState::MOVE_POINTER);
+						$joinStatement = '(A.t3ver_oid=B.uid AND A.t3ver_state<>' . $movePointer
+							. ' OR A.t3ver_oid=B.t3ver_move_id AND A.t3ver_state=' . $movePointer . ')';
+					}
 					// Select all records from this table in the database from the workspace
 					// This joins the online version with the offline version as tables A and B
-					$output[$tableName] = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows('B.uid as live_uid, A.uid as offline_uid', $tableName . ' A,' . $tableName . ' B', 'A.pid=-1' . ' AND B.pid=' . (int)$pageId . ' AND A.t3ver_wsid=' . (int)$workspace . ' AND A.t3ver_oid=B.uid' . self::deleteClause($tableName, 'A') . self::deleteClause($tableName, 'B'));
+					$output[$tableName] = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+						'B.uid as live_uid, A.uid as offline_uid',
+						$tableName . ' A,' . $tableName . ' B',
+						'A.pid=-1' . ' AND B.pid=' . (int)$pageId
+							. ' AND A.t3ver_wsid=' . (int)$workspace . ' AND ' . $joinStatement
+							. self::deleteClause($tableName, 'A') . self::deleteClause($tableName, 'B')
+					);
 					if (!is_array($output[$tableName]) || !count($output[$tableName])) {
 						unset($output[$tableName]);
 					}
@@ -4166,4 +4161,26 @@ class BackendUtility {
 		return !empty($GLOBALS['TCA'][$table]['ctrl']['security']['ignoreRootLevelRestriction']);
 	}
 
+	/**
+	 * Get the SignalSlot dispatcher
+	 *
+	 * @return \TYPO3\CMS\Extbase\SignalSlot\Dispatcher
+	 */
+	static protected function getSignalSlotDispatcher() {
+		return GeneralUtility::makeInstance('TYPO3\\CMS\\Extbase\\SignalSlot\\Dispatcher');
+	}
+
+	/**
+	 * Emits signal to modify the page TSconfig before include
+	 *
+	 * @param array $TSdataArray Current TSconfig data array - Can be modified by slots!
+	 * @param int $id Page ID we are handling
+	 * @param array $rootLine Rootline array of page
+	 * @param boolean $returnPartArray Whether TSdata should be parsed by TS parser or returned as plain text
+	 * @return array Modified Data array
+	 */
+	static protected function emitGetPagesTSconfigPreIncludeSignal(array $TSdataArray, $id, array $rootLine, $returnPartArray) {
+		$signalArguments = static::getSignalSlotDispatcher()->dispatch(__CLASS__, 'getPagesTSconfigPreInclude', array($TSdataArray, $id, $rootLine, $returnPartArray));
+		return $signalArguments[0];
+	}
 }

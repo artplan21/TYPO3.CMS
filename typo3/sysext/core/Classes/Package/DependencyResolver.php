@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Core\Package;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2013 Markus Klein <klein.t3@mfc-linz.at>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 /**
  * This class takes care about dependencies between packages.
@@ -140,6 +130,9 @@ class DependencyResolver {
 		// Initialize the dependencies with FALSE
 		$dependencyGraph = array_fill_keys($packageKeys, array_fill_keys($packageKeys, FALSE));
 		foreach ($packageKeys as $packageKey) {
+			if (!isset($packageStatesConfiguration[$packageKey]['dependencies'])) {
+				continue;
+			}
 			$dependentPackageKeys = $packageStatesConfiguration[$packageKey]['dependencies'];
 			foreach ($dependentPackageKeys as $dependentPackageKey) {
 				if (!in_array($dependentPackageKey, $packageKeys)) {
@@ -151,7 +144,47 @@ class DependencyResolver {
 				$dependencyGraph[$packageKey][$dependentPackageKey] = TRUE;
 			}
 		}
+		foreach ($packageKeys as $packageKey) {
+			if (!isset($packageStatesConfiguration[$packageKey]['suggestions'])) {
+				continue;
+			}
+			$suggestedPackageKeys = $packageStatesConfiguration[$packageKey]['suggestions'];
+			foreach ($suggestedPackageKeys as $suggestedPackageKey) {
+				if (!in_array($suggestedPackageKey, $packageKeys)) {
+					continue;
+				}
+				// Check if there's no dependency of the suggestion to the package
+				// Dependencies take precedence over suggestions
+				$dependencies = $this->findPathInGraph($dependencyGraph, $suggestedPackageKey, $packageKey);
+				if (empty($dependencies)) {
+					$dependencyGraph[$packageKey][$suggestedPackageKey] = TRUE;
+				}
+			}
+		}
 		return $dependencyGraph;
+	}
+
+	/**
+	 * Find any path in the graph from given start node to destination node
+	 *
+	 * @param array $graph Directed graph
+	 * @param string $from Start node
+	 * @param string $to Destination node
+	 * @return array Nodes of the found path; empty if no path is found
+	 */
+	protected function findPathInGraph(array $graph, $from, $to) {
+		foreach (array_keys(array_filter($graph[$from])) as $node) {
+			if ($node === $to) {
+				return array($from, $to);
+			} else {
+				$subPath = $this->findPathInGraph($graph, $node, $to);
+				if (!empty($subPath)) {
+					array_unshift($subPath, $from);
+					return $subPath;
+				}
+			}
+		}
+		return array();
 	}
 
 	/**

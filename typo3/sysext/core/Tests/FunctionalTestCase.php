@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Core\Tests;
 
-/***************************************************************
- * Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- * (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
- * All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- * This script is part of the TYPO3 project. The TYPO3 project is
- * free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- *
- * This script is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use \TYPO3\CMS\Core\Tests\Functional\Framework\Frontend\Response;
 
@@ -345,24 +335,7 @@ abstract class FunctionalTestCase extends BaseTestCase {
 		$pageId = (int)$pageId;
 		$languageId = (int)$languageId;
 
-		$phpExecutable = 'php';
-		if (defined('PHP_BINARY')) {
-			$phpExecutable = PHP_BINARY;
-		} elseif (TYPO3_OS !== 'WIN' && defined('PHP_BINDIR')) {
-			$phpExecutable = rtrim(PHP_BINDIR, '/') . '/php';
-		} else {
-			foreach(explode(';', $_SERVER['Path']) as $path) {
-				$path = rtrim(strtr($path, '\\', '/'), '/') . '/';
-				$phpFile = 'php' . (TYPO3_OS === 'WIN' ? '.exe' : '');
-				if (file_exists($path . $phpFile) && is_file($path . $phpFile)) {
-					$phpExecutable = $path . $phpFile;
-					break;
-				}
-			}
-		}
-
 		$additionalParameter = '';
-
 		if (!empty($backendUserId)) {
 			$additionalParameter .= '&backendUserId=' . (int)$backendUserId;
 		}
@@ -375,23 +348,17 @@ abstract class FunctionalTestCase extends BaseTestCase {
 			'requestUrl' => 'http://localhost/?id=' . $pageId . '&L=' . $languageId . $additionalParameter,
 		);
 
-		if (TYPO3_OS !== 'WIN') {
-			$commandParts = array(
-				escapeshellcmd($phpExecutable),
-				escapeshellarg(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Framework/Scripts/Request.php'),
-				escapeshellarg(json_encode($arguments)),
-			);
-		} else {
-			$commandParts = array(
-				escapeshellcmd($phpExecutable),
-				escapeshellarg(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Framework/Scripts/Request.php'),
-				strtr(escapeshellarg(strtr(json_encode($arguments), array('&' => '^&', '"' => '"""'))), '   ', '"""'),
-			);
-		}
+		$template = new \Text_Template(ORIGINAL_ROOT . 'typo3/sysext/core/Tests/Functional/Fixtures/Frontend/request.tpl');
+		$template->setVar(
+			array(
+				'arguments' => var_export($arguments, TRUE),
+				'originalRoot' => ORIGINAL_ROOT,
+			)
+		);
 
-		$command = trim(implode(' ', $commandParts));
-		$response = shell_exec($command);
-		$result = json_decode($response, TRUE);
+		$php = \PHPUnit_Util_PHP::factory();
+		$response = $php->runJob($template->render());
+		$result = json_decode($response['stdout'], TRUE);
 
 		if ($result === FALSE) {
 			$this->fail('Frontend Response is empty');

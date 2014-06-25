@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Impexp\Tests\Functional\Import;
 
-/***************************************************************
- * Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- * (c) 2014 Marc Bastian Heinrichs <typo3@mbh-software.de>
- * All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- * This script is part of the TYPO3 project. The TYPO3 project is
- * free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- *
- * This script is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
@@ -44,8 +34,15 @@ abstract class AbstractImportTestCase extends \TYPO3\CMS\Core\Tests\Functional\D
 	protected $import;
 
 	/**
-	 * Set up for set up the backend user, initialize the language object
-	 * and creating the ImportExport instance
+	 * Absolute path to files that must be removed
+	 * after a test - handled in tearDown
+	 *
+	 * @var array
+	 */
+	protected $testFilesToDelete = array();
+
+	/**
+	 * Set up for initialization of the ImportExport instance
 	 *
 	 * @return void
 	 */
@@ -56,6 +53,17 @@ abstract class AbstractImportTestCase extends \TYPO3\CMS\Core\Tests\Functional\D
 		$this->import->init(0, 'import');
 	}
 
+	/**
+	 * Tear down for remove of the test files
+	 */
+	public function tearDown() {
+		foreach ($this->testFilesToDelete as $absoluteFileName) {
+			if (@is_file($absoluteFileName)) {
+				unlink($absoluteFileName);
+			}
+		}
+		parent::tearDown();
+	}
 
 	/**
 	 * Test if the local filesystem is case sensitive

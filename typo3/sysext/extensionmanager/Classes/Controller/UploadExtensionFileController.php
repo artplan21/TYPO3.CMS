@@ -1,32 +1,20 @@
 <?php
 namespace TYPO3\CMS\Extensionmanager\Controller;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Susanne Moog, <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
+use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException;
 
@@ -72,7 +60,6 @@ class UploadExtensionFileController extends AbstractController {
 	 * @return void
 	 */
 	public function formAction() {
-
 	}
 
 	/**
@@ -83,10 +70,10 @@ class UploadExtensionFileController extends AbstractController {
 	 * @return void
 	 */
 	public function extractAction($overwrite = FALSE) {
+		$file = $_FILES['tx_extensionmanager_tools_extensionmanagerextensionmanager'];
+		$fileExtension = pathinfo($file['name']['extensionFile'], PATHINFO_EXTENSION);
+		$fileName = pathinfo($file['name']['extensionFile'], PATHINFO_BASENAME);
 		try {
-			$file = $_FILES['tx_extensionmanager_tools_extensionmanagerextensionmanager'];
-			$fileExtension = pathinfo($file['name']['extensionFile'], PATHINFO_EXTENSION);
-			$fileName = pathinfo($file['name']['extensionFile'], PATHINFO_BASENAME);
 			if (empty($file['name']['extensionFile'])) {
 				throw new ExtensionManagerException('No file given.', 1342858852);
 			}
@@ -101,16 +88,30 @@ class UploadExtensionFileController extends AbstractController {
 					1342864339
 				);
 			}
+
+			// Import extension
 			if ($fileExtension === 't3x') {
 				$extensionData = $this->getExtensionFromT3xFile($tempFile, $overwrite);
 			} else {
 				$extensionData = $this->getExtensionFromZipFile($tempFile, $fileName, $overwrite);
 			}
-			$this->view->assign('extensionKey', $extensionData['extKey']);
+			$this->installUtility->install($extensionData['extKey']);
+			$this->removeBackupFolder();
+			$this->addFlashMessage(
+				htmlspecialchars($this->translate('extensionList.uploadFlashMessage.message', array($extensionData['extKey']))),
+				htmlspecialchars($this->translate('extensionList.uploadFlashMessage.title')),
+				FlashMessage::OK
+			);
+			$this->addFlashMessage(
+				htmlspecialchars($this->translate('extensionList.installedFlashMessage.message', array($extensionData['extKey']))),
+				'',
+				FlashMessage::OK
+			);
 		} catch (\Exception $exception) {
 			$this->removeExtensionAndRestoreFromBackup($fileName);
-			$this->view->assign('error', $exception->getMessage());
+			$this->addFlashMessage(htmlspecialchars($exception->getMessage()), '', FlashMessage::ERROR);
 		}
+		$this->redirect('index', 'List', NULL, array(self::TRIGGER_RefreshModuleMenu => TRUE));
 	}
 
 	/**
@@ -139,8 +140,7 @@ class UploadExtensionFileController extends AbstractController {
 		}
 		$this->removeFromOriginalPath = TRUE;
 		$this->fileHandlingUtility->unpackExtensionFromExtensionDataArray($extensionData);
-		$this->installUtility->install($extensionData['extKey']);
-		$this->removeBackupFolder();
+
 		return $extensionData;
 	}
 
@@ -157,7 +157,7 @@ class UploadExtensionFileController extends AbstractController {
 	 * @throws ExtensionManagerException
 	 */
 	protected function getExtensionFromZipFile($file, $fileName, $overwrite = FALSE) {
-			// Remove version and extension from filename to determine the extension key
+		// Remove version and extension from filename to determine the extension key
 		$extensionKey = $this->getExtensionKeyFromFileName($fileName);
 		$isExtensionAvailable = $this->installUtility->isAvailable($extensionKey);
 		if (!$overwrite && $isExtensionAvailable) {
@@ -168,8 +168,6 @@ class UploadExtensionFileController extends AbstractController {
 		}
 		$this->removeFromOriginalPath = TRUE;
 		$this->fileHandlingUtility->unzipExtensionFromFile($file, $extensionKey);
-		$this->installUtility->install($extensionKey);
-		$this->removeBackupFolder();
 
 		return array('extKey' => $extensionKey);
 	}

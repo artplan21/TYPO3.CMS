@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Install\Tests\Unit\Controller\Action\Ajax;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2013 Susanne Moog <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Utility;
 
@@ -31,9 +21,6 @@ use TYPO3\CMS\Core\Utility;
  */
 class ExtensionCompatibilityTesterTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
-	public function setUp() {
-		$this->markTestIncomplete('FIXME: rework to match package management change');
-	}
 	/**
 	 * Tear down
 	 *
@@ -44,6 +31,21 @@ class ExtensionCompatibilityTesterTest extends \TYPO3\CMS\Core\Tests\UnitTestCas
 			unlink(PATH_site . 'typo3temp/ExtensionCompatibilityTester.txt');
 		}
 		parent::tearDown();
+	}
+
+	/**
+	 * @test
+	 */
+	public function getExtensionsToLoadGetsExtensionsWithoutExcluded() {
+		$GLOBALS['TYPO3_LOADED_EXT'] = array(
+			'cms' => '',
+			'news' => '',
+			'info' => ''
+		);
+		$extensionCompatibilityTesterMock = $this->getAccessibleMock('TYPO3\\CMS\\Install\\Controller\\Action\\Ajax\\ExtensionCompatibilityTester', array('getExtensionsToExclude'), array());
+		$extensionCompatibilityTesterMock->expects($this->once())->method('getExtensionsToExclude')->will($this->returnValue(array('cms', 'info')));
+		$result = $extensionCompatibilityTesterMock->_call('getExtensionsToLoad');
+		$this->assertEquals(array('news' => ''), $result);
 	}
 
 	/**
@@ -98,31 +100,7 @@ class ExtensionCompatibilityTesterTest extends \TYPO3\CMS\Core\Tests\UnitTestCas
 		$this->assertFalse(file_exists(PATH_site . 'typo3temp/ExtensionCompatibilityTester.txt'));
 	}
 
-	/**
-	 * @test
-	 */
-	public function getLoadedExtensionsReturnsArray() {
-		$extensionCompatibilityTesterMock = $this->getAccessibleMock('TYPO3\\CMS\\Install\\Controller\\Action\\Ajax\\ExtensionCompatibilityTester', array('dummy'), array());
-		$result = $extensionCompatibilityTesterMock->_call('getExtensionsToLoad');
-		$this->assertInternalType('array', $result);
-	}
 
-	/**
-	 * @test
-	 */
-	public function loadExtTablesForExtensionIncludesExtTablesPhp() {
-		$extension = array(
-			'demo1' => array(
-				'type' => 'L',
-				'ext_tables.php' => PATH_typo3 . 'sysext/install/Tests/Unit/Controller/Action/Ajax/Fixtures/demo1/ext_tables.php'
-			)
-		);
-		$extensionCompatibilityTesterMock = $this->getAccessibleMock('TYPO3\\CMS\\Install\\Controller\\Action\\Ajax\\ExtensionCompatibilityTester', array('dummy'), array());
-		$extensionCompatibilityTesterMock->_call('loadExtTablesForExtension', 'demo1', $extension['demo1']);
-		$this->assertArrayHasKey('demo1_executed', $GLOBALS);
-		$this->assertEquals('foobar', $GLOBALS['demo1_executed']);
-		unset($GLOBALS['demo1_executed']);
-	}
 
 	/**
 	 * @test
@@ -186,7 +164,6 @@ class ExtensionCompatibilityTesterTest extends \TYPO3\CMS\Core\Tests\UnitTestCas
 		$extensionCompatibilityTesterMock->_call('tryToLoadExtLocalconfAndExtTablesOfExtensions', $extension);
 	}
 
-
 	/**
 	 * @test
 	 */
@@ -195,18 +172,6 @@ class ExtensionCompatibilityTesterTest extends \TYPO3\CMS\Core\Tests\UnitTestCas
 		$extensionCompatibilityTesterMock->_call('writeCurrentExtensionToFile', 'demo1');
 		$fileContent = file_get_contents($extensionCompatibilityTesterMock->_get('protocolFile'));
 		$this->assertEquals('demo1', $fileContent);
-	}
-
-	/**
-	 * @test
-	 */
-	public function getExtensionsToLoadCallsGetExtensionsToExclude() {
-		$extensionCompatibilityTesterMock = $this->getAccessibleMock('TYPO3\\CMS\\Install\\Controller\\Action\\Ajax\\ExtensionCompatibilityTester', array('getExtensionsToExclude'), array());
-		$extensionCompatibilityTesterMock
-			->expects($this->once())
-			->method('getExtensionsToExclude')
-			->will($this->returnValue(array()));
-		$extensionCompatibilityTesterMock->_call('getExtensionsToLoad');
 	}
 
 	/**

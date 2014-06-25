@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Install\SystemEnvironment;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2013 Christian Kuhn <lolli@schwarzbu.ch>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Install\Status;
 
@@ -94,6 +84,7 @@ class Check {
 		$statusArray[] = $this->checkPhpVersion();
 		$statusArray[] = $this->checkMaxExecutionTime();
 		$statusArray[] = $this->checkDisableFunctions();
+		$statusArray[] = $this->checkDownloadsPossible();
 		$statusArray[] = $this->checkSafeMode();
 		$statusArray[] = $this->checkDocRoot();
 		$statusArray[] = $this->checkOpenBaseDir();
@@ -405,6 +396,28 @@ class Check {
 	}
 
 	/**
+	 * Check if it is possible to download external data (e.g. TER)
+	 * Either allow_url_fopen must be enabled or curl must be used
+	 *
+	 * @return Status\OkStatus|Status\WarningStatus
+	 */
+	protected function checkDownloadsPossible() {
+		$allowUrlFopen = (bool)ini_get('allow_url_fopen');
+		$curlEnabled = !empty($GLOBALS['TYPO3_CONF_VARS']['SYS']['curlUse']);
+		if ($allowUrlFopen || $curlEnabled) {
+			$status = new Status\OkStatus();
+			$status->setTitle('Fetching external URLs is allowed');
+		} else {
+			$status = new Status\WarningStatus();
+			$status->setTitle('Fetching external URLs is not allowed');
+			$status->setMessage(
+				'Either enable PHP runtime setting "allow_url_fopen"' . LF .  'or enable curl by setting [SYS][curlUse] accordingly.'
+			);
+		}
+		return $status;
+	}
+
+	/**
 	 * Check if safe mode is enabled
 	 *
 	 * @return Status\StatusInterface
@@ -488,7 +501,7 @@ class Check {
 	 */
 	protected function checkXdebugMaxNestingLevel() {
 		if (extension_loaded('xdebug')) {
-			$recommendedMaxNestingLevel = 250;
+			$recommendedMaxNestingLevel = 400;
 			$currentMaxNestingLevel = ini_get('xdebug.max_nesting_level');
 			if ($currentMaxNestingLevel < $recommendedMaxNestingLevel) {
 				$status = new Status\ErrorStatus();

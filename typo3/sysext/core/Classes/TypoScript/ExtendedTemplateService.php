@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Core\TypoScript;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Backend\Utility\IconUtility;
@@ -67,6 +54,13 @@ class ExtendedTemplateService extends \TYPO3\CMS\Core\TypoScript\TemplateService
 		// Advanced functions, which are used very seldomly.
 		'all' => array()
 	);
+
+	/**
+	 * Translated categories
+	 *
+	 * @var array
+	 */
+	protected $categoryLabels = array();
 
 	// This will be filled with the available categories of the current template.
 	/**
@@ -910,7 +904,11 @@ class ExtendedTemplateService extends \TYPO3\CMS\Core\TypoScript\TemplateService
 									case 'cat':
 										// List of categories.
 										$catSplit = explode('/', strtolower($keyValPair[1]));
-										$editableComments[$const]['cat'] = trim($catSplit[0]);
+										$catSplit[0] = trim($catSplit[0]);
+										if (isset($this->categoryLabels[$catSplit[0]])) {
+											$catSplit[0] = $this->categoryLabels[$catSplit[0]];
+										}
+										$editableComments[$const]['cat'] = $catSplit[0];
 										// This is the subcategory. Must be a key in $this->subCategories[]. catSplit[2] represents the search-order within the subcat.
 										$catSplit[1] = trim($catSplit[1]);
 										if ($catSplit[1] && isset($this->subCategories[$catSplit[1]])) {
@@ -923,6 +921,14 @@ class ExtendedTemplateService extends \TYPO3\CMS\Core\TypoScript\TemplateService
 									case 'label':
 										// Label
 										$editableComments[$const]['label'] = trim($keyValPair[1]);
+										break;
+									case 'customcategory':
+										// Custom category label
+										$customCategory = explode('=', $keyValPair[1], 2);
+										if (trim($customCategory[0])) {
+											$categoryKey = strtolower($customCategory[0]);
+											$this->categoryLabels[$categoryKey] = $GLOBALS['LANG']->sL($customCategory[1]);
+										}
 										break;
 									case 'customsubcategory':
 										// Custom subCategory label

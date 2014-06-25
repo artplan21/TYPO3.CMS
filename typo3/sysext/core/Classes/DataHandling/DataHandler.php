@@ -1,30 +1,18 @@
 <?php
 namespace TYPO3\CMS\Core\DataHandling;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -3448,7 +3436,7 @@ class DataHandler {
 		// For "flex" fieldtypes we need to traverse the structure for two reasons: If there are file references they have to be prepended with absolute paths and if there are database reference they MIGHT need to be remapped (still done in remapListedDBRecords())
 		if ($conf['type'] == 'flex') {
 			// Get current value array:
-			$dataStructArray = BackendUtility::getFlexFormDS($conf, $row, $table);
+			$dataStructArray = BackendUtility::getFlexFormDS($conf, $row, $table, $field);
 			$currentValueArray = GeneralUtility::xml2array($value);
 			// Traversing the XML structure, processing files:
 			if (is_array($currentValueArray)) {
@@ -4852,13 +4840,13 @@ class DataHandler {
 				}
 			} elseif ($conf['type'] == 'flex') {
 				// Current record
-				$dataStructArray = BackendUtility::getFlexFormDS($conf, $currentRec, $table);
+				$dataStructArray = BackendUtility::getFlexFormDS($conf, $currentRec, $table, $field);
 				$currentValueArray = GeneralUtility::xml2array($currentRec[$field]);
 				if (is_array($currentValueArray)) {
 					$this->checkValue_flex_procInData($currentValueArray['data'], array(), array(), $dataStructArray, array($table, $id, $field), 'version_remapMMForVersionSwap_flexFormCallBack');
 				}
 				// Swap record
-				$dataStructArray = BackendUtility::getFlexFormDS($conf, $swapRec, $table);
+				$dataStructArray = BackendUtility::getFlexFormDS($conf, $swapRec, $table, $field);
 				$currentValueArray = GeneralUtility::xml2array($swapRec[$field]);
 				if (is_array($currentValueArray)) {
 					$this->checkValue_flex_procInData($currentValueArray['data'], array(), array(), $dataStructArray, array($table, $swapWith, $field), 'version_remapMMForVersionSwap_flexFormCallBack');
@@ -4981,7 +4969,7 @@ class DataHandler {
 									if (is_array($origRecordRow)) {
 										BackendUtility::workspaceOL($table, $origRecordRow);
 										// Get current data structure and value array:
-										$dataStructArray = BackendUtility::getFlexFormDS($conf, $origRecordRow, $table);
+										$dataStructArray = BackendUtility::getFlexFormDS($conf, $origRecordRow, $table, $fieldName);
 										$currentValueArray = GeneralUtility::xml2array($origRecordRow[$fieldName]);
 										// Do recursive processing of the XML data:
 										$currentValueArray['data'] = $this->checkValue_flex_procInData($currentValueArray['data'], array(), array(), $dataStructArray, array($table, $theUidToUpdate, $fieldName), 'remapListedDBRecords_flexFormCallBack');
@@ -6040,7 +6028,7 @@ class DataHandler {
 				}
 				// Set log message if there were fields with unmatching values:
 				if (count($errorString)) {
-					$this->log($table, $id, $action, 0, 102, 'These fields are not properly updated in database: (' . implode(',', $errorString) . ') Probably value mismatch with fieldtype.');
+					$this->log($table, $id, $action, 0, 1, 'These fields are not properly updated in database: (' . implode(',', $errorString) . ') Probably value mismatch with fieldtype.');
 				}
 				// Return selected rows:
 				return $row;
@@ -7166,7 +7154,8 @@ class DataHandler {
 				break;
 			case 'temp_cached':
 			case 'system':
-				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.system')) {
+				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.system')
+					|| ((bool) $GLOBALS['TYPO3_CONF_VARS']['SYS']['clearCacheSystem'] === TRUE && $this->admin)) {
 					GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroup('system');
 				}
 				break;

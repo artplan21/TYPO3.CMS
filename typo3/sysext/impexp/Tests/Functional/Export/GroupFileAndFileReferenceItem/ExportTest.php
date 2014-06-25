@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Impexp\Tests\Functional\Export\GroupFileAndFileReferenceItem;
 
-/***************************************************************
- * Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- * (c) 2014 Marc Bastian Heinrichs <typo3@mbh-software.de>
- * All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- * This script is part of the TYPO3 project. The TYPO3 project is
- * free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- *
- * This script is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 
@@ -62,6 +52,36 @@ class ExportTest extends \TYPO3\CMS\Impexp\Tests\Functional\Export\AbstractExpor
 	 * @test
 	 */
 	public function exportGroupFileAndFileReferenceItem() {
+
+		$this->compileExportGroupFileAndFileReferenceItem();
+
+		$out = $this->export->compileMemoryToFileContent('xml');
+
+		$this->assertXmlStringEqualsXmlFile(__DIR__ . '/../../Fixtures/ImportExportXml/impexp-group-file-and-file_reference-item.xml', $out);
+	}
+
+	/**
+	 * @test
+	 */
+	public function exportGroupFileAndFileReferenceItemButImagesNotIncluded() {
+
+		$this->export->setSaveFilesOutsideExportFile(TRUE);
+
+		$this->compileExportGroupFileAndFileReferenceItem();
+
+		$out = $this->export->compileMemoryToFileContent('xml');
+
+		$this->assertXmlStringEqualsXmlFile(__DIR__ . '/../../Fixtures/ImportExportXml/impexp-group-file-and-file_reference-item-but-images-not-included.xml', $out);
+
+		$temporaryFilesDirectory = $this->export->getTemporaryFilesPathForExport();
+		$this->assertFileEquals(__DIR__ . '/../../Fixtures/Folders/uploads/tx_impexpgroupfiles/typo3_image4.jpg', $temporaryFilesDirectory . 'e1c5c4e1e34e19e2facb438752e06c3f');
+		$this->assertFileEquals(__DIR__ . '/../../Fixtures/Folders/fileadmin/user_upload/typo3_image5.jpg', $temporaryFilesDirectory . 'c3511df85d21bc578faf71c6a19eeb3ff44af370');
+	}
+
+
+
+
+	protected function compileExportGroupFileAndFileReferenceItem() {
 
 		$this->export->setRecordTypesIncludeFields(
 			array(
@@ -137,9 +157,6 @@ class ExportTest extends \TYPO3\CMS\Impexp\Tests\Functional\Export\AbstractExpor
 		$this->export->export_addFilesFromRelations();
 		$this->export->export_addFilesFromSysFilesRecords();
 
-		$out = $this->export->compileMemoryToFileContent('xml');
-
-		$this->assertXmlStringEqualsXmlFile(__DIR__ . '/../../Fixtures/ImportExportXml/impexp-group-file-and-file_reference-item.xml', $out);
 	}
 
 }

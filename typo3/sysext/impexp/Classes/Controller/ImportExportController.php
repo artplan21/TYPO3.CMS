@@ -1,34 +1,22 @@
 <?php
 namespace TYPO3\CMS\Impexp\Controller;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\IconUtility;
 use TYPO3\CMS\Core\Database\DatabaseConnection;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
@@ -236,6 +224,11 @@ class ImportExportController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
 		if (is_array($inData['external_ref']['tables'])) {
 			$this->export->relOnlyTables = $inData['external_ref']['tables'];
 		}
+		$saveFilesOutsideExportFile = FALSE;
+		if (isset($inData['save_export']) && isset($inData['saveFilesOutsideExportFile']) && $inData['saveFilesOutsideExportFile'] === '1') {
+			$this->export->setSaveFilesOutsideExportFile(TRUE);
+			$saveFilesOutsideExportFile = TRUE;
+		}
 		$this->export->setHeaderBasics();
 		// Meta data setting:
 
@@ -379,6 +372,17 @@ class ImportExportController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
 					file_put_contents($temporaryFileName, $out);
 					$file = $saveFolder->addFile($temporaryFileName, $dlFile, 'replace');
 					$file = $this->getIndexerService()->indexFile($file);
+					if ($saveFilesOutsideExportFile) {
+						$filesFolderName = $dlFile . '.files';
+						$filesFolder = $saveFolder->createFolder($filesFolderName);
+						$temporaryFolderForExport = ResourceFactory::getInstance()->retrieveFileOrFolderObject($this->export->getTemporaryFilesPathForExport());
+						$temporaryFilesForExport = $temporaryFolderForExport->getFiles();
+						foreach ($temporaryFilesForExport as $temporaryFileForExport) {
+							$filesFolder->getStorage()->moveFile($temporaryFileForExport, $filesFolder);
+						}
+						$temporaryFolderForExport->delete();
+					}
+
 					$this->content .= $this->doc->section($GLOBALS['LANG']->getLL('exportdata_savedFile'), sprintf($GLOBALS['LANG']->getLL('exportdata_savedInSBytes', TRUE), $file->getPublicUrl(), GeneralUtility::formatSize(strlen($out))), 0, 1);
 				} else {
 					$this->content .= $this->doc->section($GLOBALS['LANG']->getLL('exportdata_problemsSavingFile'), sprintf($GLOBALS['LANG']->getLL('exportdata_badPathS', TRUE), $this->getTemporaryFolderPath()), 0, 1, 2);
@@ -694,6 +698,20 @@ class ImportExportController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
 					<td><input type="checkbox" name="tx_impexp[excludeHTMLfileResources]" id="checkExcludeHTMLfileResources" value="1"'
 						. ($inData['excludeHTMLfileResources'] ? ' checked="checked"' : '') . ' /></td>
 				</tr>';
+
+		// Files options
+		$row[] = '
+			<tr class="tableheader bgColor5">
+				<td colspan="2">' . $this->lang->getLL('makeadvanc_files', TRUE) . '</td>
+			</tr>';
+			$row[] = '
+			<tr class="bgColor4">
+				<td><label for="saveFilesOutsideExportFile"><strong>'
+					. $this->lang->getLL('makeadvanc_saveFilesOutsideExportFile', TRUE) . '</strong><br />'
+					. $this->lang->getLL('makeadvanc_saveFilesOutsideExportFile_limit', TRUE) . '</label></td>
+				<td><input type="checkbox" name="tx_impexp[saveFilesOutsideExportFile]" id="saveFilesOutsideExportFile" value="1"'
+					. ($inData['saveFilesOutsideExportFile'] ? ' checked="checked"' : '') . ' /></td>
+			</tr>';
 		// Extensions
 		$row[] = '
 			<tr class="tableheader bgColor5">
@@ -775,7 +793,10 @@ class ImportExportController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
 		if (!empty($thumbnailFiles)) {
 			array_unshift($thumbnailFiles, '');
 		}
-		$thumbnail = $this->getFile($inData['meta']['thumbnail']);
+		$thumbnail = NULL;
+		if (!empty($inData['meta']['thumbnail'])) {
+			$thumbnail = $this->getFile($inData['meta']['thumbnail']);
+		}
 		$saveFolder = $this->getDefaultImportExportFolder();
 
 		$row[] = '
@@ -1459,7 +1480,7 @@ class ImportExportController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
 		$thumbnailFiles = array();
 		$defaultTemporaryFolder = $this->getDefaultImportExportFolder();
 
-		if ($defaultTemporaryFolder === FALSE) {
+		if ($defaultTemporaryFolder === NULL) {
 			return $thumbnailFiles;
 		}
 

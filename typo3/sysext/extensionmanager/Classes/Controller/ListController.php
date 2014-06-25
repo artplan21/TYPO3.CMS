@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Extensionmanager\Controller;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Susanne Moog, <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 /**
  * Controller for extension listings (TER or local extensions)
  *
@@ -52,6 +39,12 @@ class ListController extends AbstractController {
 	protected $pageRenderer;
 
 	/**
+	 * @var \TYPO3\CMS\Extensionmanager\Utility\DependencyUtility
+	 * @inject
+	 */
+	protected $dependencyUtility;
+
+	/**
 	 * Add the needed JavaScript files for all actions
 	 */
 	public function initializeAction() {
@@ -68,6 +61,32 @@ class ListController extends AbstractController {
 		$availableAndInstalledExtensions = $this->listUtility->getAvailableAndInstalledExtensionsWithAdditionalInformation();
 		$this->view->assign('extensions', $availableAndInstalledExtensions);
 		$this->handleTriggerArguments();
+	}
+
+	/**
+	 * Shows a list of unresolved dependency errors with the possibility to bypass the dependency check
+	 *
+	 * @param string $extensionKey
+	 * @throws \TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException
+	 * @return void
+	 */
+	public function unresolvedDependenciesAction($extensionKey) {
+		$availableExtensions = $this->listUtility->getAvailableExtensions();
+		if (isset($availableExtensions[$extensionKey])) {
+			$extensionArray = $this->listUtility->enrichExtensionsWithEmConfAndTerInformation(
+				array(
+					$extensionKey => $availableExtensions[$extensionKey]
+				)
+			);
+			/** @var \TYPO3\CMS\Extensionmanager\Utility\ExtensionModelUtility $extensionModelUtility */
+			$extensionModelUtility = $this->objectManager->get('TYPO3\\CMS\\Extensionmanager\\Utility\\ExtensionModelUtility');
+			$extension = $extensionModelUtility->mapExtensionArrayToModel($extensionArray[$extensionKey]);
+		} else {
+			throw new \TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException('Extension ' . $extensionKey . ' is not available', 1402421007);
+		}
+		$this->dependencyUtility->checkDependencies($extension);
+		$this->view->assign('extension', $extension);
+		$this->view->assign('unresolvedDependencies', $this->dependencyUtility->getDependencyErrors());
 	}
 
 	/**

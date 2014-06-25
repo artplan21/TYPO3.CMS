@@ -1,32 +1,18 @@
 <?php
 namespace TYPO3\CMS\Frontend\ContentObject;
 
-/***************************************************************
- * Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- * (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- * All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- * This script is part of the TYPO3 project. The TYPO3 project is
- * free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- * The GNU General Public License can be found at
- * http://www.gnu.org/copyleft/gpl.html.
- * A copy is found in the text file GPL.txt and important notices to the license
- * from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- * This script is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * This copyright notice MUST APPEAR in all copies of the script!
- *
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Versioning\VersionState;
@@ -510,6 +496,12 @@ class ContentObjectRenderer {
 
 	// Containing hooks for userdefined cObjects
 	/**
+	 * Additionally registered content object types and class names
+	 * @var array
+	 */
+	protected $cObjHookObjectsRegistry = array();
+
+	/**
 	 * @todo Define visibility
 	 */
 	public $cObjHookObjectsArr = array();
@@ -570,7 +562,7 @@ class ContentObjectRenderer {
 		$this->parameters = array();
 		if (is_array($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClass'])) {
 			foreach ($TYPO3_CONF_VARS['SC_OPTIONS']['tslib/class.tslib_content.php']['cObjTypeAndClass'] as $classArr) {
-				$this->cObjHookObjectsArr[$classArr[0]] = GeneralUtility::getUserObj($classArr[1]);
+				$this->cObjHookObjectsRegistry[$classArr[0]] = $classArr[1];
 			}
 		}
 		$this->stdWrapHookObjects = array();
@@ -734,7 +726,10 @@ class ContentObjectRenderer {
 			} else {
 				$hooked = FALSE;
 				// Application defined cObjects
-				if (!empty($this->cObjHookObjectsArr[$name])) {
+				if (!empty($this->cObjHookObjectsRegistry[$name])) {
+					if (empty($this->cObjHookObjectsArr[$name])) {
+						$this->cObjHookObjectsArr[$name] = GeneralUtility::getUserObj($this->cObjHookObjectsRegistry[$name]);
+					}
 					$hookObj = $this->cObjHookObjectsArr[$name];
 					if (method_exists($hookObj, 'cObjGetSingleExt')) {
 						$content .= $hookObj->cObjGetSingleExt($name, $conf, $TSkey, $this);
@@ -6424,10 +6419,12 @@ class ContentObjectRenderer {
 				$currentQueryArray = GeneralUtility::_POST();
 				break;
 			case 'GET,POST':
-				$currentQueryArray = array_merge(GeneralUtility::_GET(), GeneralUtility::_POST());
+				$currentQueryArray = GeneralUtility::_GET();
+				\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule($currentQueryArray, GeneralUtility::_POST());
 				break;
 			case 'POST,GET':
-				$currentQueryArray = array_merge(GeneralUtility::_POST(), GeneralUtility::_GET());
+				$currentQueryArray = GeneralUtility::_POST();
+				\TYPO3\CMS\Core\Utility\ArrayUtility::mergeRecursiveWithOverrule($currentQueryArray, GeneralUtility::_GET());
 				break;
 			default:
 				$currentQueryArray = GeneralUtility::explodeUrl2Array(GeneralUtility::getIndpEnv('QUERY_STRING'), TRUE);

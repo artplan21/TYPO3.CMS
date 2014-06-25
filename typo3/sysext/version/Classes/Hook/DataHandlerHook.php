@@ -1,33 +1,18 @@
 <?php
 namespace TYPO3\CMS\Version\Hook;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  (c) 2010-2013 Benjamin Mack (benni@typo3.org)
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  All rights reserved
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
@@ -291,15 +276,20 @@ class DataHandlerHook {
 			$moveRecVersionState = VersionState::cast($moveRec['t3ver_state']);
 			// Get workspace version of the source record, if any:
 			$WSversion = BackendUtility::getWorkspaceVersionOfRecord($tcemainObj->BE_USER->workspace, $table, $uid, 'uid,t3ver_oid');
-			// If no version exists and versioningWS is in version 2, a new placeholder is made automatically:
+			// Handle move-placeholders if the current record is not one already
 			if (
-				!$WSversion['uid']
-				&& BackendUtility::isTableMovePlaceholderAware($table)
+				BackendUtility::isTableMovePlaceholderAware($table)
 				&& !$moveRecVersionState->equals(VersionState::MOVE_PLACEHOLDER)
 			) {
-				$tcemainObj->versionizeRecord($table, $uid, 'Placeholder version for moving record');
-				$WSversion = BackendUtility::getWorkspaceVersionOfRecord($tcemainObj->BE_USER->workspace, $table, $uid, 'uid,t3ver_oid');
-				$this->moveRecord_processFields($tcemainObj, $resolvedPid, $table, $uid);
+				// Create version of record first, if it does not exist
+				if (empty($WSversion['uid'])) {
+					$tcemainObj->versionizeRecord($table, $uid, 'MovePointer');
+					$WSversion = BackendUtility::getWorkspaceVersionOfRecord($tcemainObj->BE_USER->workspace, $table, $uid, 'uid,t3ver_oid');
+					$this->moveRecord_processFields($tcemainObj, $resolvedPid, $table, $uid);
+				// If the record has been versioned before (e.g. cascaded parent-child structure), create only the move-placeholders
+				} elseif ($tcemainObj->isRecordCopied($table, $uid) && (int)$tcemainObj->copyMappingArray[$table][$uid] === (int)$WSversion['uid']) {
+					$this->moveRecord_processFields($tcemainObj, $resolvedPid, $table, $uid);
+				}
 			}
 			// Check workspace permissions:
 			$workspaceAccessBlocked = array();
@@ -391,7 +381,7 @@ class DataHandlerHook {
 			if ($table === 'pages') {
 				// If the inline elements are related to a page record,
 				// make sure they reside at that page and not at its parent
-				$destinationPageId = $uid;
+				$resolvedPageId = $uid;
 			}
 
 			$dbAnalysis = $this->createRelationHandlerInstance();
@@ -404,7 +394,7 @@ class DataHandlerHook {
 				if (empty($versionedRecord) || VersionState::cast($versionedRecord['t3ver_state'])->indicatesPlaceholder()) {
 					continue;
 				}
-				$this->moveRecord_wsPlaceholders($item['table'], $item['id'], $resolvedPageId, $versionedRecord['uid'], $dataHandler);
+				$dataHandler->moveRecord($item['table'], $item['id'], $resolvedPageId);
 			}
 		}
 	}
@@ -1275,7 +1265,7 @@ class DataHandlerHook {
 				$newVersion_placeholderFieldArray['perms_group'] = $access['perms_group'];
 				$newVersion_placeholderFieldArray['perms_everybody'] = $access['perms_everybody'];
 			}
-			$newVersion_placeholderFieldArray['t3ver_label'] = 'MOVE-TO PLACEHOLDER for #' . $uid;
+			$newVersion_placeholderFieldArray['t3ver_label'] = 'MovePlaceholder #' . $uid;
 			$newVersion_placeholderFieldArray['t3ver_move_id'] = $uid;
 			// Setting placeholder state value for temporary record
 			$newVersion_placeholderFieldArray['t3ver_state'] = (string)new VersionState(VersionState::MOVE_PLACEHOLDER);

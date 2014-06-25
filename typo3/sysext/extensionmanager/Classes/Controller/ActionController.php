@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Extensionmanager\Controller;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Susanne Moog, <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 /**
  * Controller for handling extension related actions like
  * installing, removing, downloading of data or files
@@ -71,15 +58,15 @@ class ActionController extends AbstractController {
 				$this->installUtility->uninstall($extensionKey);
 			} else {
 				// install
-				$this->managementService->resolveDependenciesAndInstall(
-					$this->extensionModelUtility->mapExtensionArrayToModel(
-						$this->installUtility->enrichExtensionWithDetails($extensionKey)
-					)
+				$extension = $this->extensionModelUtility->mapExtensionArrayToModel(
+					$this->installUtility->enrichExtensionWithDetails($extensionKey)
 				);
+				if ($this->managementService->installExtension($extension) === FALSE) {
+					$this->redirect('unresolvedDependencies', 'List', NULL, array('extensionKey' => $extensionKey));
+				}
 			}
 		} catch (\TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException $e) {
-			$message = nl2br(htmlspecialchars($e->getMessage()));
-			$this->addFlashMessage($message, '', \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
+			$this->addFlashMessage(htmlspecialchars($e->getMessage()), '', \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 		} catch (\TYPO3\Flow\Package\Exception\PackageStatesFileNotWritableException $e) {
 			$this->addFlashMessage(htmlspecialchars($e->getMessage()), '', \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 		}
@@ -87,20 +74,39 @@ class ActionController extends AbstractController {
 	}
 
 	/**
+	 * Install an extension and omit dependency checking
+	 *
+	 * @param string $extensionKey
+	 * @return void
+	 */
+	public function installExtensionWithoutSystemDependencyCheckAction($extensionKey) {
+		$this->managementService->setSkipSystemDependencyCheck(TRUE);
+		$this->forward('toggleExtensionInstallationState', NULL, NULL, array('extensionKey' => $extensionKey));
+	}
+
+	/**
 	 * Remove an extension (if it is still installed, uninstall it first)
 	 *
 	 * @param string $extension
+	 * @return string
 	 */
 	protected function removeExtensionAction($extension) {
-		$success = TRUE;
-		$message = '';
 		try {
 			$this->installUtility->removeExtension($extension);
+			$this->addFlashMessage(
+				\TYPO3\CMS\Extbase\Utility\LocalizationUtility::translate(
+					'extensionList.remove.message',
+					'extensionmanager',
+					array(
+						'extension' => $extension,
+					)
+				)
+			);
 		} catch (\TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException $e) {
-			$message = $e->getMessage();
-			$success = FALSE;
+			$this->addFlashMessage(htmlspecialchars($e->getMessage()), '', \TYPO3\CMS\Core\Messaging\FlashMessage::ERROR);
 		}
-		$this->view->assign('success', $success)->assign('message', $message)->assign('extension', $extension);
+
+		return '';
 	}
 
 	/**

@@ -1,28 +1,18 @@
 <?php
 namespace TYPO3\CMS\Core\Tests\Unit\Package;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2013 Markus Klein <klein.t3@mfc-linz.at>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Package\DependencyResolver;
 
@@ -764,7 +754,125 @@ class DependencyResolverTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 					),
 				),
 			),
+			'Suggestions without reverse dependency' => array(
+				array(
+					'A' => array(
+						'state' => 'active',
+						'suggestions' => array('B'),
+					),
+					'B' => array(
+						'state' => 'active',
+					),
+					'C' => array(
+						'state' => 'active',
+						'dependencies' => array('A')
+					),
+				),
+				array(
+					'A' => array(
+						'A' => FALSE,
+						'B' => TRUE,
+						'C' => FALSE,
+					),
+					'B' => array(
+						'A' => FALSE,
+						'B' => FALSE,
+						'C' => FALSE,
+					),
+					'C' => array(
+						'A' => TRUE,
+						'B' => FALSE,
+						'C' => FALSE,
+					),
+				),
+			),
+			'Suggestions with reverse dependency' => array(
+				array(
+					'A' => array(
+						'state' => 'active',
+						'suggestions' => array('B'),
+					),
+					'B' => array(
+						'state' => 'active',
+						'dependencies' => array('A')
+					),
+					'C' => array(
+						'state' => 'active',
+						'dependencies' => array('A')
+					),
+				),
+				array(
+					'A' => array(
+						'A' => FALSE,
+						'B' => FALSE,
+						'C' => FALSE,
+					),
+					'B' => array(
+						'A' => TRUE,
+						'B' => FALSE,
+						'C' => FALSE,
+					),
+					'C' => array(
+						'A' => TRUE,
+						'B' => FALSE,
+						'C' => FALSE,
+					),
+				),
+			),
 		);
+	}
+
+	/**
+	 * @return array
+	 */
+	public function findPathInGraphReturnsCorrectPathDataProvider() {
+		return array(
+			'Simple path' => array(
+				array(
+					'A' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => TRUE),
+					'B' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE),
+					'C' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE),
+					'Z' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE)
+				),
+			    'A', 'Z',
+			    array('A', 'Z')
+			),
+			'No path' => array(
+				array(
+					'A' => array('A' => FALSE, 'B' => TRUE, 'C' => FALSE, 'Z' => FALSE),
+					'B' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE),
+					'C' => array('A' => FALSE, 'B' => TRUE, 'C' => FALSE, 'Z' => FALSE),
+					'Z' => array('A' => FALSE, 'B' => TRUE, 'C' => FALSE, 'Z' => FALSE)
+				),
+				'A', 'C',
+				array()
+			),
+			'Longer path' => array(
+				array(
+					'A' => array('A' => FALSE, 'B' => TRUE, 'C' => TRUE, 'Z' => TRUE),
+					'B' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE),
+					'C' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => TRUE),
+					'Z' => array('A' => FALSE, 'B' => FALSE, 'C' => FALSE, 'Z' => FALSE)
+				),
+				'A', 'Z',
+				array('A', 'C', 'Z')
+			),
+		);
+	}
+
+	/**
+	 * @param array $graph
+	 * @param string $from
+	 * @param string $to
+	 * @param array $expected
+	 * @test
+	 * @dataProvider findPathInGraphReturnsCorrectPathDataProvider
+	 */
+	public function findPathInGraphReturnsCorrectPath(array $graph, $from, $to, array $expected) {
+		$dependencyResolver = $this->getAccessibleMock('\TYPO3\CMS\Core\Package\DependencyResolver', array('dummy'));
+		$path = $dependencyResolver->_call('findPathInGraph', $graph, $from, $to);
+
+		$this->assertSame($expected, $path);
 	}
 
 }

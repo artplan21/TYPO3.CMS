@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Extensionmanager\Controller;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Susanne Moog <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 use TYPO3\CMS\Extensionmanager\Domain\Model\Extension;
 
 /**
@@ -115,11 +102,22 @@ class DownloadController extends AbstractController {
 	 * @param string $downloadPath
 	 */
 	public function installFromTerAction(\TYPO3\CMS\Extensionmanager\Domain\Model\Extension $extension, $downloadPath) {
-		list($result, $errorMessage) = $this->installFromTer($extension, $downloadPath);
+		list($result, $errorMessages) = $this->installFromTer($extension, $downloadPath);
 		$this->view
 			->assign('result', $result)
 			->assign('extension', $extension)
-			->assign('errorMessage', $errorMessage);
+			->assign('unresolvedDependencies', $errorMessages);
+	}
+
+	/**
+	 * Check extension dependencies with special dependencies
+	 *
+	 * @param \TYPO3\CMS\Extensionmanager\Domain\Model\Extension $extension
+	 * @throws \Exception
+	 */
+	public function installExtensionWithoutSystemDependencyCheckAction(\TYPO3\CMS\Extensionmanager\Domain\Model\Extension $extension) {
+		$this->managementService->setSkipSystemDependencyCheck(TRUE);
+		$this->forward('installFromTer', NULL, NULL, array('extension' => $extension, 'downloadPath' => 'Local'));
 	}
 
 	/**
@@ -171,10 +169,9 @@ class DownloadController extends AbstractController {
 		$result = array();
 
 		$extensionKey = $this->request->getArgument('extension');
-		/** @var Extension $highestTerVersionExtension */
 		$highestTerVersionExtension = $this->extensionRepository->findHighestAvailableVersion($extensionKey);
 		try {
-			$result = $this->managementService->resolveDependenciesAndInstall($highestTerVersionExtension);
+			$result = $this->managementService->installExtension($highestTerVersionExtension);
 		} catch (\Exception $e) {
 			$hasErrors = TRUE;
 			$errorMessage = $e->getMessage();
@@ -214,13 +211,21 @@ class DownloadController extends AbstractController {
 	 */
 	protected function installFromTer(\TYPO3\CMS\Extensionmanager\Domain\Model\Extension $extension, $downloadPath = 'Local') {
 		$result = FALSE;
-		$errorMessage = '';
+		$errorMessages = array();
 		try {
 			$this->downloadUtility->setDownloadPath($downloadPath);
-			$result = $this->managementService->resolveDependenciesAndInstall($extension);
+			if (($result = $this->managementService->installExtension($extension)) === FALSE) {
+				$errorMessages = $this->managementService->getDependencyErrors();
+			}
 		} catch (\TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException $e) {
-			$errorMessage = $e->getMessage();
+			$errorMessages = array(
+				$extension->getExtensionKey() => array(
+					'code' => $e->getCode(),
+					'message' => $e->getMessage(),
+				),
+			);
 		}
-		return array($result, $errorMessage);
+
+		return array($result, $errorMessages);
 	}
 }

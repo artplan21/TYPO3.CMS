@@ -1,31 +1,18 @@
 <?php
 namespace TYPO3\CMS\Frontend\ContentObject;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Ingmar Schlecht <ingmar@typo3.org>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\MathUtility;
@@ -59,6 +46,10 @@ class FilesContentObject extends \TYPO3\CMS\Frontend\ContentObject\AbstractConte
 	 * @return string Output
 	 */
 	public function render($conf = array()) {
+		if (!empty($conf['if.']) && !$this->cObj->checkIf($conf['if.'])) {
+			return '';
+		}
+
 		$fileObjects = array();
 		// Getting the files
 		if ($conf['references'] || $conf['references.']) {
@@ -86,19 +77,7 @@ class FilesContentObject extends \TYPO3\CMS\Frontend\ContentObject\AbstractConte
 				}
 			}
 
-			// It's important that this always stays "fieldName" and not be renamed to "field" as it would otherwise collide with the stdWrap key of that name
-			if (!empty($conf['references.'])) {
-				$referencesFieldName = $this->cObj->stdWrapValue('fieldName', $conf['references.']);
-				if ($referencesFieldName) {
-					$table = $this->cObj->getCurrentTable();
-					if ($table === 'pages' && isset($this->cObj->data['_LOCALIZED_UID']) && (int)$this->cObj->data['sys_language_uid'] > 0) {
-						$table = 'pages_language_overlay';
-					}
-					$referencesForeignTable = $this->cObj->stdWrapValue('table', $conf['references.'], $table);
-					$referencesForeignUid = $this->cObj->stdWrapValue('uid', $conf['references.'], isset($this->cObj->data['_LOCALIZED_UID']) ? $this->cObj->data['_LOCALIZED_UID'] : $this->cObj->data['uid']);
-					$this->addToArray($this->getFileRepository()->findByRelation($referencesForeignTable, $referencesFieldName, $referencesForeignUid), $fileObjects);
-				}
-			}
+			$this->handleFileReferences($conf, (array)$this->cObj->data, $fileObjects);
 		}
 		if ($conf['files'] || $conf['files.']) {
 			/*
@@ -281,6 +260,66 @@ class FilesContentObject extends \TYPO3\CMS\Frontend\ContentObject\AbstractConte
 	}
 
 	/**
+	 * Handles and resolves file references.
+	 *
+	 * @param array $configuration TypoScript configuration
+	 * @param array $element The parent element referencing to files
+	 * @param array $fileObjects Collection of file objects
+	 * @return void
+	 */
+	protected function handleFileReferences(array $configuration, array $element, array &$fileObjects) {
+		if (empty($configuration['references.'])) {
+			return;
+		}
+
+		// It's important that this always stays "fieldName" and not be renamed to "field" as it would otherwise collide with the stdWrap key of that name
+		$referencesFieldName = $this->cObj->stdWrapValue('fieldName', $configuration['references.']);
+
+		// If no reference fieldName is set, there's nothing to do
+		if (empty($referencesFieldName)) {
+			return;
+		}
+
+		$currentId = !empty($element['uid']) ? $element['uid'] : 0;
+		$tableName = $this->cObj->getCurrentTable();
+
+		// Fetch the references of the default element
+		$referencesForeignTable = $this->cObj->stdWrapValue('table', $configuration['references.'], $tableName);
+		$referencesForeignUid = $this->cObj->stdWrapValue('uid', $configuration['references.'], $currentId);
+
+		$pageRepository = $this->getPageRepository();
+		// Fetch element if definition has been modified via TypoScript
+		if ($referencesForeignTable !== $tableName || $referencesForeignUid !== $currentId) {
+			$element = $pageRepository->getRawRecord(
+				$referencesForeignTable,
+				$referencesForeignUid,
+				'*',
+				FALSE
+			);
+
+			$pageRepository->versionOL($referencesForeignTable, $element, TRUE);
+			if ($referencesForeignTable === 'pages') {
+				$element = $pageRepository->getPageOverlay($element);
+			} else {
+				$element = $pageRepository->getRecordOverlay(
+					$referencesForeignTable,
+					$element,
+					$GLOBALS['TSFE']->sys_language_content,
+					$GLOBALS['TSFE']->sys_language_contentOL
+				);
+			}
+		}
+
+		$references = $pageRepository->getFileReferences(
+			$referencesForeignTable,
+			$referencesFieldName,
+			$element
+		);
+
+		$this->addToArray($references, $fileObjects);
+	}
+
+	/**
 	 * Adds $newItems to $theArray, which is passed by reference. Array must only consist of numerical keys.
 	 *
 	 * @param mixed $newItems Array with new items or single object that's added.
@@ -305,6 +344,13 @@ class FilesContentObject extends \TYPO3\CMS\Frontend\ContentObject\AbstractConte
 	 */
 	protected function stdWrapValue($key, array $config, $defaultValue = '') {
 		return $this->cObj->stdWrapValue($key, $config, $defaultValue);
+	}
+
+	/**
+	 * @return \TYPO3\CMS\Frontend\Page\PageRepository
+	 */
+	protected function getPageRepository() {
+		return $GLOBALS['TSFE']->sys_page;
 	}
 
 }

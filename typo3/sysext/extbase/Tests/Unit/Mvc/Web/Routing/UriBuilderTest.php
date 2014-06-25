@@ -1,32 +1,18 @@
 <?php
 namespace TYPO3\CMS\Extbase\Tests\Unit\Mvc\Web\Routing;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  This class is a backport of the corresponding class of TYPO3 Flow.
- *  All credits go to the TYPO3 Flow team.
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 /**
  * Test case
@@ -344,6 +330,80 @@ class UriBuilderTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 		$expectedResult = 'http://baseuri/' . TYPO3_mainDir . 'mod.php?M=moduleKey&moduleToken=dummyToken';
 		$actualResult = $this->uriBuilder->buildBackendUri();
 		$this->assertSame($expectedResult, $actualResult);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildBackendUriWithQueryStringMethodPostGetMergesParameters() {
+		$_POST = array(
+			'key1' => 'POST1',
+			'key2' => 'POST2',
+			'key3' => array(
+				'key31' => 'POST31',
+				'key32' => 'POST32',
+				'key33' => array(
+					'key331' => 'POST331',
+					'key332' => 'POST332',
+				)
+			),
+		);
+		$_GET = array(
+			'key2' => 'GET2',
+			'key3' => array(
+				'key32' => 'GET32',
+				'key33' => array(
+					'key331' => 'GET331',
+				)
+			)
+		);
+		$this->uriBuilder->setAddQueryString(TRUE);
+		$this->uriBuilder->setAddQueryStringMethod('POST,GET');
+		$expectedResult = $this->rawUrlEncodeSquareBracketsInUrl('mod.php?moduleToken=dummyToken&key1=POST1&key2=GET2&key3[key31]=POST31&key3[key32]=GET32&key3[key33][key331]=GET331&key3[key33][key332]=POST332');
+		$actualResult = $this->uriBuilder->buildBackendUri();
+		$this->assertEquals($expectedResult, $actualResult);
+	}
+
+	/**
+	 * @test
+	 */
+	public function buildBackendUriWithQueryStringMethodGetPostMergesParameters() {
+		$_GET = array(
+			'key1' => 'GET1',
+			'key2' => 'GET2',
+			'key3' => array(
+				'key31' => 'GET31',
+				'key32' => 'GET32',
+				'key33' => array(
+					'key331' => 'GET331',
+					'key332' => 'GET332',
+				)
+			),
+		);
+		$_POST = array(
+			'key2' => 'POST2',
+			'key3' => array(
+				'key32' => 'POST32',
+				'key33' => array(
+					'key331' => 'POST331',
+				)
+			)
+		);
+		$this->uriBuilder->setAddQueryString(TRUE);
+		$this->uriBuilder->setAddQueryStringMethod('GET,POST');
+		$expectedResult = $this->rawUrlEncodeSquareBracketsInUrl('mod.php?moduleToken=dummyToken&key1=GET1&key2=POST2&key3[key31]=GET31&key3[key32]=POST32&key3[key33][key331]=POST331&key3[key33][key332]=GET332');
+		$actualResult = $this->uriBuilder->buildBackendUri();
+		$this->assertEquals($expectedResult, $actualResult);
+	}
+
+	/**
+	 * Encodes square brackets in URL.
+	 *
+	 * @param string $string
+	 * @return string
+	 */
+	private function rawUrlEncodeSquareBracketsInUrl($string) {
+		return str_replace(array('[', ']'), array('%5B', '%5D'), $string);
 	}
 
 	/**

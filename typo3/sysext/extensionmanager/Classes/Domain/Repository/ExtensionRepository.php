@@ -1,34 +1,25 @@
 <?php
 namespace TYPO3\CMS\Extensionmanager\Domain\Repository;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 2012-2013 Susanne Moog, <typo3@susannemoog.de>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 /**
  * A repository for extensions
  *
  * @author Susanne Moog <typo3@susannemoog.de>
  */
 class ExtensionRepository extends \TYPO3\CMS\Extbase\Persistence\Repository {
+
 	/**
 	 * @var string
 	 */
@@ -77,6 +68,11 @@ class ExtensionRepository extends \TYPO3\CMS\Extbase\Persistence\Repository {
 	public function findAll() {
 		$query = $this->createQuery();
 		$query = $this->addDefaultConstraints($query);
+		$query->setOrderings(
+			array(
+				'lastUpdated' => \TYPO3\CMS\Extbase\Persistence\QueryInterface::ORDER_DESCENDING
+			)
+		);
 		return $query->execute();
 	}
 
@@ -258,7 +254,7 @@ class ExtensionRepository extends \TYPO3\CMS\Extbase\Persistence\Repository {
 	 * Find highest version available of an extension
 	 *
 	 * @param string $extensionKey
-	 * @return object
+	 * @return \TYPO3\CMS\Extensionmanager\Domain\Model\Extension
 	 */
 	public function findHighestAvailableVersion($extensionKey) {
 		$query = $this->createQuery();

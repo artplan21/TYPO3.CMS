@@ -1,29 +1,18 @@
 <?php
 namespace TYPO3\CMS\SysAction;
 
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  (c) 1999-2013 Kasper Skårhøj (kasperYYYY@typo3.com)
- *  (c) 2010-2013 Georg Ringer <typo3@ringerge.org>
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Backend\Utility\BackendUtility;
@@ -286,7 +275,7 @@ class ActionTask implements \TYPO3\CMS\Taskcenter\TaskInterface {
 		$loadDB->start($vars['db_mountpoints'], 'pages');
 		$content .= '<form action="" method="post" enctype="multipart/form-data">
 						<fieldset class="fields">
-							<legend>General fields</legend>
+							<legend>' . $GLOBALS['LANG']->getLL('action_t1_legend_generalFields') . '</legend>
 							<div class="row">
 								<label for="field_disable">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_general.xlf:LGL.disable') . '</label>
 								<input type="checkbox" id="field_disable" name="data[disable]" value="1" class="checkbox" ' . ($vars['disable'] == 1 ? ' checked="checked" ' : '') . ' />
@@ -309,7 +298,7 @@ class ActionTask implements \TYPO3\CMS\Taskcenter\TaskInterface {
 							</div>
 						</fieldset>
 						<fieldset class="fields">
-							<legend>Configuration</legend>
+							<legend>' . $GLOBALS['LANG']->getLL('action_t1_legend_configuration') . '</legend>
 
 							<div class="row">
 								<label for="field_usergroup">' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_tca.xlf:be_users.usergroup') . '</label>
@@ -414,9 +403,9 @@ class ActionTask implements \TYPO3\CMS\Taskcenter\TaskInterface {
 		// Link to delete the user record
 		$onClick = ' onClick="return confirm(' . GeneralUtility::quoteJSvalue($GLOBALS['LANG']->getLL('lDelete_warning')) . ');"';
 		$link .= '
-				<a href="' . htmlspecialchars(($href . '&delete=1')) . '" ' . $onClick . '>
-					<img' . \TYPO3\CMS\Backend\Utility\IconUtility::skinImg($GLOBALS['BACK_PATH'], 'gfx/delete_record.gif') . ' alt="" />
-				</a>';
+				<a href="' . htmlspecialchars(($href . '&delete=1')) . '" ' . $onClick . '>'
+					. \TYPO3\CMS\Backend\Utility\IconUtility::getSpriteIcon('actions-edit-delete') .
+				'</a>';
 		return $link;
 	}
 
