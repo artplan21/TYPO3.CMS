@@ -31,12 +31,12 @@ use TYPO3\CMS\Install\Configuration;
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class IntlNormalizerPreset extends Configuration\AbstractPreset {
+class IntlPreset extends Configuration\AbstractPreset {
 
 	/**
 	 * @var string Name of preset
 	 */
-	protected $name = 'IntlNormalizer';
+	protected $name = 'Intl';
 
 	/**
 	 * @var integer Priority of preset

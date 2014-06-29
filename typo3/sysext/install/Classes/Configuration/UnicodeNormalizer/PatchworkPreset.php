@@ -31,12 +31,12 @@ use TYPO3\CMS\Install\Configuration;
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class PatchworkNormalizerPreset extends Configuration\AbstractPreset {
+class PatchworkPreset extends Configuration\AbstractPreset {
 
 	/**
 	 * @var string Name of preset
 	 */
-	protected $name = 'PatchworkNormalizer';
+	protected $name = 'Patchwork';
 
 	/**
 	 * @var integer Priority of preset

@@ -42,8 +42,9 @@ class UnicodeNormalizerFeature extends Configuration\AbstractFeature implements 
 	 * @var array List of preset classes
 	 */
 	protected $presetRegistry = array(
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\IntlNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\PatchworkNormalizerPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\StubNormalizerPreset',
+		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\IntlPreset',
+		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\PatchworkPreset',
+		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\DefaultPreset',
+		'TYPO3\\CMS\\Install\\Configuration\\UnicodeNormalization\\CustomPreset',
 	);
 }
