@@ -687,9 +687,9 @@ class CharsetConverter {
 	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = NULL) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN
 		if ($fromCS == $toCS) {
-			if ($toCS == 'utf-8' && $unicodeNormalization) {
+			if ($toCS == 'utf-8' && 1 < (int) $unicodeNormalization) {
 				return \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
-					->normalizeStringTo($str, $unicodeNormalization);
+					->normalizeTo($str, $unicodeNormalization);
 			}
 			return $str;
 		}
@@ -709,9 +709,9 @@ class CharsetConverter {
 					break;
 			}
 			if (NULL !== $conv_str && FALSE !== $conv_str) {
-				if ($unicodeNormalization) {
+				if (1 < (int) $unicodeNormalization) {
 					return \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
-						->normalizeTo($conv_str, $unicodeNormalization, TRUE);
+						->normalizeTo($conv_str, $unicodeNormalization);
 				}
 				return $conv_str;
 			}
@@ -719,9 +719,9 @@ class CharsetConverter {
 		if ($fromCS != 'utf-8') {
 			$str = $this->utf8_encode($str, $fromCS);
 		}
-		if ($unicodeNormalization) {
+		if (1 < (int) $unicodeNormalization) {
 			$str = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::getInstance()
-				->normalizeStringTo($str, $unicodeNormalization);
+				->normalizeTo($str, $unicodeNormalization);
 		}
 		if ($toCS != 'utf-8') {
 			$str = $this->utf8_decode($str, $toCS, $useEntityForNoChar);
