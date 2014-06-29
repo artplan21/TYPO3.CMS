@@ -27,25 +27,16 @@ namespace TYPO3\CMS\Install\Configuration\Filesystem;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Filesystem feature for path encodings and it's unicode-normalization
+ * Custom filesystem preset is a fallback if no other preset fits
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class FilesystemFeature extends Configuration\AbstractFeature implements Configuration\FeatureInterface {
+class CustomPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
 
 	/**
-	 * @var string Name of feature
+	 * @var array Configuration values handled by this preset
 	 */
-	protected $name = 'Filesystem';
-
-	/**
-	 * @var array List of preset classes
-	 */
-	protected $presetRegistry = array(
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\Utf8Preset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\Utf8NfdPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\Utf8NfcPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\DefaultPreset',
-		'TYPO3\\CMS\\Install\\Configuration\\Filesystem\\CustomPreset'
+	protected $configurationValues = array(
+		'SYS/UTF8filesystem' => '',
 	);
 }

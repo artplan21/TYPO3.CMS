@@ -1,5 +1,5 @@
 <?php
-namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
+namespace TYPO3\CMS\Install\Configuration\Filesystem;
 
 /***************************************************************
  *  Copyright notice
@@ -27,16 +27,26 @@ namespace TYPO3\CMS\Install\Configuration\UnicodeNormalization;
 use TYPO3\CMS\Install\Configuration;
 
 /**
- * Custom filesystem preset is a fallback if no other preset fits
+ * Abstract class implements common filesystem preset code
  *
  * @author Stephan Jorek <stephan.jorek@artplan21.de>
  */
-class CustomFilesystemPreset extends Configuration\AbstractCustomPreset implements Configuration\CustomPresetInterface {
+abstract class AbstractPreset extends Configuration\AbstractPreset {
 
 	/**
-	 * @var array Configuration values handled by this preset
+	 *
+	 * @return array<boolean>
 	 */
-	protected $configurationValues = array(
-// 		'SYS/UTF8filesystem' => 0,
-	);
+	protected function detectUtf8Capabilities() {
+		static $capabilities;
+
+		if (isset($capabilities)) {
+			return $capabilities;
+		}
+
+		$capabilities = \TYPO3\CMS\Core\Charset\UnicodeNormalizer::detectUtf8CapabilitiesForPath(PATH_site . '/typo3temp');
+
+		return $capabilities;
+	}
+
 }
