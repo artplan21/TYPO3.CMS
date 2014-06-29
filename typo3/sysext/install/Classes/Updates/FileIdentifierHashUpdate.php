@@ -108,7 +108,6 @@ class FileIdentifierHashUpdate extends AbstractUpdate {
 	 */
 	public function performUpdate(array &$dbQueries, &$customMessages) {
 		$this->init();
-
 		foreach ($this->storages as $storage) {
 			$dbQueries = array_merge($dbQueries, $this->updateIdentifierHashesForStorage($storage));
 		}
@@ -146,6 +145,7 @@ class FileIdentifierHashUpdate extends AbstractUpdate {
 
 		/** @var $flexObj \TYPO3\CMS\Core\Configuration\FlexForm\FlexFormTools */
 		$flexObj = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Configuration\\FlexForm\\FlexFormTools');
+
 
 		foreach ($unmigratedStorages as $storage) {
 			$flexFormXml = $storage['configuration'];
@@ -236,6 +236,7 @@ class FileIdentifierHashUpdate extends AbstractUpdate {
 			$files = $this->db->exec_SELECTgetRows('uid, storage, identifier', 'sys_file',
 				sprintf('storage=%d AND ( identifier_hash="" OR folder_hash="" )', $storage->getUid())
 			);
+
 			foreach ($files as $file) {
 				$hash = $storage->hashFileIdentifier($file['identifier']);
 				$folderHash = $storage->hashFileIdentifier($storage->getFolderIdentifierFromFileIdentifier($file['identifier']));
