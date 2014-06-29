@@ -252,10 +252,10 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	 * @see http://www.php.net/manual/en/normalizer.normalize.php
 	 */
 	public function normalizeStringTo($string, $normalization = NULL) {
-		if (self::NONE === (int) $normalization) {
-			return $string;
+		if (self::NONE < (int) $normalization) {
+			return $this->normalizeTo($string, $normalization);
 		}
-		return $this->normalizeTo($string, $normalization);
+		return $string;
 	}
 
 	// Not really needed !
@@ -319,7 +319,7 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	 * @see UnicodeNormalizer::normalize()
 	 */
 	public function normalizeArrayTo(array & $array, $normalization = NULL) {
-		if (UnicodeNormalizer::NONE !== (int) $normalization) {
+		if (self::NONE < (int) $normalization) {
 			$this->processArrayWithMethod('normalizeTo', $array, $normalization);
 		}
 	}
@@ -364,7 +364,9 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 	 * @see UnicodeNormalizer::normalizeArray()
 	 */
 	public function normalizeInputArraysTo($inputs, $normalization = NULL) {
-		$this->processInputArraysWithMethod('normalizeTo', $inputs, $normalization);
+		if (self::NONE < (int) $normalization) {
+			$this->processInputArraysWithMethod('normalizeTo', $inputs, $normalization);
+		}
 	}
 
 	/**
@@ -658,5 +660,112 @@ class UnicodeNormalizer implements \TYPO3\CMS\Core\SingletonInterface {
 		}
 
 		throw new \Exception(sprintf('Invalid unicode-normalizer implementation: %s.', $implementation), 1399749988);
+	}
+
+	/**
+	 *
+	 * @param string $absolutePath
+	 * @return array<boolean, array>
+	 * @todo TODO Feature #57695: Find the right place for UnicodeNormalizer::detectUtf8CapabilitiesForPath and add proper documentation - and isolate normalization part back here.
+	 */
+	static public function detectUtf8CapabilitiesForPath($absolutePath) {
+		$capabilities = array();
+
+		if (empty($absolutePath) || !is_dir($absolutePath)) {
+			return $capabilities;
+		}
+
+		$currentLocale = setlocale(LC_CTYPE, 0);
+		$capabilities['locale'] = FALSE;
+		if (strstr($currentLocale, '.') !== FALSE &&
+			strstr(strtolower(str_replace('-', '', $currentLocale)), '.utf8') === FALSE)
+		{
+			return $capabilities;
+		}
+		$capabilities['locale'] = TRUE;
+
+		$testString = 'ÖöĄĆŻĘĆćążąęó.txt';
+		$quote = TYPO3_OS === 'WIN' ? '"' : '\'';
+
+		$capabilities['escape'] = FALSE;
+		if (escapeshellarg($testString) !== $quote . $testString . $quote) {
+			return $capabilities;
+		}
+		$capabilities['escape'] = TRUE;
+
+		$fileNames = array(
+			// not normalized variant of $testString from above partially in NFC and partially in NFD
+			self::NONE => 'c396c3b6c484c486c5bbc498c48663cc8161cca87acc8761cca865cca86fcc812e747874',
+			// NFD-normalized variant of $testString from above
+			self::NFD => '4fcc886fcc8841cca843cc815acc8745cca843cc8163cc8161cca87acc8761cca865cca86fcc812e6a7067',
+			// Not supported
+			self::NFKD => FALSE,
+			// NFC-normalized variant of $testString from above
+			self::NFC => 'c396c3b6c484c486c5bbc498c486c487c485c5bcc485c499c3b32e6a7067',
+			// Not supported
+			self::NFKC => FALSE,
+		);
+
+		$basePath = $absolutePath . '/' . tempnam($absolutePath, 'unicode-normalization-support-test-');
+
+		// The temporary base path should be missing, so try to create it
+		if (is_dir($basePath) || !mkdir($basePath)) {
+			return $capabilities;
+		}
+
+		// The base dir must exist
+		if (!is_dir($basePath)) {
+			return $capabilities;
+		}
+
+		$normalizations = array();
+		foreach($fileNames as $normalization => $fileName) {
+			if ($fileName === FALSE) {
+				$normalizations[$normalization] = FALSE;
+				unset($fileNames[$normalization]);
+				continue ;
+			}
+			$normalizations[$normalization] = array('read'=>FALSE, 'write'=>FALSE);
+			$fileName = $normalization . '-' . hex2bin($fileName);
+			$fileNames[$normalization] = $fileName;
+			if (touch($basePath . '/' . $fileName)) {
+				$normalizations[$normalization]['write'] = TRUE;
+			}
+		}
+
+		$handle = opendir($basePath);
+		while(is_resource($handle) && (FALSE !== ($entry = readdir($handle)))) {
+			if ($entry[0] === '.') {
+				continue;
+			}
+			foreach($fileNames as $normalization => $fileName) {
+				if ($normalizations[$normalization]['read'] === TRUE) {
+					continue;
+				}
+				if ($entry === $fileName) {
+					// If all files exist then the filesystem does not normalize unicode.
+					// If some files are missing then the filesystem, either normalizes unicode
+					// or it denies access to not-normalized filepaths or it simply does not
+					// support unicode at all or at least not those normalization forms we test.
+					$normalizations[$normalization]['read'] = TRUE;
+				}
+			}
+			unlink($basePath . '/' . $entry);
+		}
+		closedir($handle);
+		rmdir($basePath);
+
+		$capabilities['normalization'] = array_map(function($normalization) {
+			if (FALSE === $normalization) {
+				return $normalization;
+			} else if (!in_array(FALSE, $normalization, TRUE)) {
+				return TRUE;
+			} else if (in_array(TRUE, $normalization, TRUE)) {
+				return $normalization;
+			}
+			return FALSE;
+		}, $normalizations);
+
+		return $capabilities;
 	}
 }
