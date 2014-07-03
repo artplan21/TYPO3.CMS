@@ -1192,7 +1192,7 @@ class DataHandler {
 										$newVersion_placeholderFieldArray['t3ver_state'] = (string)new VersionState(VersionState::NEW_PLACEHOLDER);
 										// Setting workspace - only so display of place holders can filter out those from other workspaces.
 										$newVersion_placeholderFieldArray['t3ver_wsid'] = $this->BE_USER->workspace;
-										$newVersion_placeholderFieldArray[$GLOBALS['TCA'][$table]['ctrl']['label']] = '[PLACEHOLDER, WS#' . $this->BE_USER->workspace . ']';
+										$newVersion_placeholderFieldArray[$GLOBALS['TCA'][$table]['ctrl']['label']] = $this->getPlaceholderTitleForTableLabel($table);
 										// Saving placeholder as 'original'
 										$this->insertDB($table, $id, $newVersion_placeholderFieldArray, FALSE);
 										// For the actual new offline version, set versioning values to point to placeholder:
@@ -1275,6 +1275,23 @@ class DataHandler {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Create a placeholder title for the label field that does match the field requirements
+	 *
+	 * @param string $table The table name
+	 * @return string placeholder value
+	 */
+	protected function getPlaceholderTitleForTableLabel($table) {
+		$labelPlaceholder = '[PLACEHOLDER, WS#' . $this->BE_USER->workspace . ']';
+		$labelField = $GLOBALS['TCA'][$table]['ctrl']['label'];
+		if (!isset($GLOBALS['TCA'][$table]['columns'][$labelField]['config']['eval'])) {
+			return $labelPlaceholder;
+		}
+		$evalCodesArray = GeneralUtility::trimExplode(',', $GLOBALS['TCA'][$table]['columns'][$labelField]['config']['eval'], TRUE);
+		$transformedLabel = $this->checkValue_input_Eval($labelPlaceholder, $evalCodesArray, '');
+		return isset($transformedLabel['value']) ? $transformedLabel['value'] : $labelPlaceholder;
 	}
 
 	/**
@@ -7067,7 +7084,7 @@ class DataHandler {
 		}
 
 		/** @var \TYPO3\CMS\Core\Cache\CacheManager $cacheManager */
-		$cacheManager = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager');
+		$cacheManager = $this->getCacheManager();
 		foreach ($tagsToClear as $tag) {
 			$cacheManager->flushCachesInGroupByTag('pages', $tag);
 		}
@@ -7130,13 +7147,13 @@ class DataHandler {
 		switch (strtolower($cacheCmd)) {
 			case 'pages':
 				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.pages')) {
-					GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroup('pages');
+					$this->getCacheManager()->flushCachesInGroup('pages');
 				}
 				break;
 			case 'all':
 				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.all')) {
 					// Clear cache group "all" of caching framework caches
-					GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroup('all');
+					$this->getCacheManager()->flushCachesInGroup('all');
 					$GLOBALS['TYPO3_DB']->exec_TRUNCATEquery('cache_treelist');
 					// Clearing additional cache tables:
 					if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['t3lib/class.t3lib_tcemain.php']['clearAllCache_additionalTables'])) {
@@ -7156,7 +7173,7 @@ class DataHandler {
 			case 'system':
 				if ($this->admin || $this->BE_USER->getTSConfigVal('options.clearCache.system')
 					|| ((bool) $GLOBALS['TYPO3_CONF_VARS']['SYS']['clearCacheSystem'] === TRUE && $this->admin)) {
-					GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroup('system');
+					$this->getCacheManager()->flushCachesInGroup('system');
 				}
 				break;
 		}
@@ -7188,7 +7205,7 @@ class DataHandler {
 		// process caching framwork operations
 		if (count($tagsToFlush) > 0) {
 			foreach (array_unique($tagsToFlush) as $tag) {
-				GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroupByTag('pages', $tag);
+				$this->getCacheManager()->flushCachesInGroupByTag('pages', $tag);
 			}
 		}
 
@@ -7310,7 +7327,7 @@ class DataHandler {
 	 */
 	public function internal_clearPageCache() {
 		GeneralUtility::logDeprecatedFunction();
-		GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->flushCachesInGroup('pages');
+		$this->getCacheManager()->flushCachesInGroup('pages');
 	}
 
 	/**
@@ -7420,8 +7437,9 @@ class DataHandler {
 	 * @return \TYPO3\CMS\Core\Cache\Frontend\VariableFrontend
 	 */
 	protected function getMemoryCache() {
-		return GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager')->getCache('cache_runtime');
+		return $this->getCacheManager()->getCache('cache_runtime');
 	}
+
 
 	/**
 	 * Determines nested element calls.
@@ -7583,4 +7601,12 @@ class DataHandler {
 		return GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Database\\RelationHandler');
 	}
 
+	/**
+	 * Create and returns an instance of the CacheManager
+	 *
+	 * @return \TYPO3\CMS\Core\Cache\CacheManager
+	 */
+	protected function getCacheManager() {
+		return GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Cache\\CacheManager');
+	}
 }

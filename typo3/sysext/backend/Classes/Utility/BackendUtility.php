@@ -14,7 +14,6 @@ namespace TYPO3\CMS\Backend\Utility;
  * The TYPO3 project - inspiring people to share!
  */
 
-use TYPO3\CMS\Backend\Utility\IconUtility;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Resource\ProcessedFile;
@@ -1550,11 +1549,11 @@ class BackendUtility {
 							continue;
 						}
 					} catch (\TYPO3\CMS\Core\Resource\Exception\ResourceDoesNotExistException $exception) {
-						/** @var \TYPO3\CMS\Core\Messaging\FlashMessage $flashMessage */
-						$flashMessage = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
+						/** @var FlashMessage $flashMessage */
+						$flashMessage = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage',
 							htmlspecialchars($exception->getMessage()),
 							$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xlf:warning.file_missing', TRUE),
-							\TYPO3\CMS\Core\Messaging\FlashMessage::ERROR
+							FlashMessage::ERROR
 						);
 						$thumbData .= $flashMessage->render();
 						continue;
@@ -2047,6 +2046,7 @@ class BackendUtility {
 							$selectUids = $dbGroup->tableArray[$theColConf['foreign_table']];
 							if (is_array($selectUids) && count($selectUids) > 0) {
 								$MMres = $GLOBALS['TYPO3_DB']->exec_SELECTquery('uid, ' . $MMfield, $theColConf['foreign_table'], 'uid IN (' . implode(',', $selectUids) . ')' . self::deleteClause($theColConf['foreign_table']));
+								$mmlA = array();
 								while ($MMrow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($MMres)) {
 									// Keep sorting of $selectUids
 									$mmlA[array_search($MMrow['uid'], $selectUids)] = $noRecordLookup ?
@@ -2054,8 +2054,8 @@ class BackendUtility {
 										self::getRecordTitle($theColConf['foreign_table'], $MMrow, FALSE, $forceResult);
 								}
 								$GLOBALS['TYPO3_DB']->sql_free_result($MMres);
-								ksort($mmlA);
-								if (is_array($mmlA)) {
+								if (!empty($mmlA)) {
+									ksort($mmlA);
 									$l = implode('; ', $mmlA);
 								} else {
 									$l = 'N/A';
@@ -2072,7 +2072,18 @@ class BackendUtility {
 							if ($noRecordLookup) {
 								$l = $value;
 							} else {
-								$rParts = GeneralUtility::trimExplode(',', $value, TRUE);
+								$rParts = array();
+								if (isset($theColConf['foreign_field']) && $theColConf['foreign_field'] !== '') {
+									$records = self::getRecordsByField($theColConf['foreign_table'], $theColConf['foreign_field'], $uid);
+									if (!empty($records)) {
+										foreach ($records as $record) {
+											$rParts[] = $record['uid'];
+										}
+									}
+								}
+								if (empty($rParts)) {
+									$rParts = GeneralUtility::trimExplode(',', $value, TRUE);
+								}
 								$lA = array();
 								foreach ($rParts as $rVal) {
 									$rVal = (int)$rVal;
