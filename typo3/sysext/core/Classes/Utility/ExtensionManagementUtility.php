@@ -1238,7 +1238,7 @@ class ExtensionManagementUtility {
 	 * Use this function to add a frontend plugin to this list of plugin-types - or more generally use this function to add an entry to any selectorbox/radio-button set in the TCEFORMS
 	 * FOR USE IN ext_tables.php FILES or files in Configuration/TCA/Overrides/*.php Use the latter to benefit from TCA caching!
 	 *
-	 * @param array $itemArray Item Array
+	 * @param array $itemArray Numerical array: [0] => Plugin label, [1] => Underscored extension key, [2] => Path to plugin icon relative to TYPO3_mainDir
 	 * @param string $type Type (eg. "list_type") - basically a field from "tt_content" table
 	 * @param string $extensionKey The extension key
 	 * @throws \RuntimeException
@@ -1247,9 +1247,16 @@ class ExtensionManagementUtility {
 	static public function addPlugin($itemArray, $type = 'list_type', $extensionKey = NULL) {
 		$extensionKey = $extensionKey ?: $GLOBALS['_EXTKEY'];
 		if (!isset($extensionKey)) {
-			throw new \RuntimeException('No extensionKey set in addPlugin(). Provide it as third Parameter', 1404068038);
+			throw new \RuntimeException(
+				'No extension key could be determined when calling addPlugin()!'
+				. LF
+				. 'This method is meant to be called from an ext_tables.php or Configuration/TCA/Overrides file. '
+				. 'If you call it from Configuration/TCA/Overrides, the extension key needs to be specified as third parameter. '
+				. 'Calling it from any other place e.g. ext_localconf.php does not work and is not supported.',
+				1404068038
+			);
 		}
-		if ($extensionKey && !$itemArray[2]) {
+		if ($extensionKey && !$itemArray[2] && isset($GLOBALS['TYPO3_LOADED_EXT'][$extensionKey]['ext_icon'])) {
 			$itemArray[2] = self::extRelPath($extensionKey) . $GLOBALS['TYPO3_LOADED_EXT'][$extensionKey]['ext_icon'];
 		}
 		if (is_array($GLOBALS['TCA']['tt_content']['columns']) && is_array($GLOBALS['TCA']['tt_content']['columns'][$type]['config']['items'])) {
@@ -1615,9 +1622,11 @@ tt_content.' . $key . $prefix . ' {
 	static protected function buildBaseTcaFromSingleFiles() {
 		$GLOBALS['TCA'] = array();
 
+		$activePackages = static::$packageManager->getActivePackages();
+
 		// First load "full table" files from Configuration/TCA
-		foreach (self::getLoadedExtensionListArray() as $extensionName) {
-			$tcaConfigurationDirectory = self::extPath($extensionName) . 'Configuration/TCA';
+		foreach ($activePackages as $package) {
+			$tcaConfigurationDirectory = $package->getPackagePath() . 'Configuration/TCA';
 			if (is_dir($tcaConfigurationDirectory)) {
 				$files = scandir($tcaConfigurationDirectory);
 				foreach ($files as $file) {
@@ -1642,7 +1651,7 @@ tt_content.' . $key . $prefix . ' {
 		\TYPO3\CMS\Core\Category\CategoryRegistry::getInstance()->applyTcaForPreRegisteredTables();
 
 		// Execute override files from Configuration/TCA/Overrides
-		foreach (static::$packageManager->getActivePackages() as $package) {
+		foreach ($activePackages as $package) {
 			$tcaOverridesPathForPackage = $package->getPackagePath() . 'Configuration/TCA/Overrides';
 			if (is_dir($tcaOverridesPathForPackage)) {
 				$files = scandir($tcaOverridesPathForPackage);

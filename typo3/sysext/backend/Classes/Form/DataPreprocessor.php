@@ -287,7 +287,7 @@ class DataPreprocessor {
 	 * @param array $TSconfig TSconfig	(blank for flexforms for now)
 	 * @param string $table Table name
 	 * @param array $row The row array, always of the real record (also for flexforms)
-	 * @param string $field The field (empty for flexforms!)
+	 * @param string $field The field
 	 * @return string Modified $value
 	 * @todo Define visibility
 	 */
@@ -382,7 +382,7 @@ class DataPreprocessor {
 		// New data set, ready for interface (list of values, rawurlencoded)
 		$dataAcc = array();
 		// For list selectors (multi-value):
-		if ((int)$fieldConfig['config']['maxitems'] > 1) {
+		if ((int)$fieldConfig['config']['maxitems'] > 1 || $fieldConfig['config']['renderMode'] === 'tree') {
 			// Add regular elements:
 			if (!is_array($fieldConfig['config']['items'])) {
 				$fieldConfig['config']['items'] = array();
@@ -603,7 +603,7 @@ class DataPreprocessor {
 								$dataValues[$key][$vKey] = $dsConf['TCEforms']['config']['default'];
 							}
 							// Process value:
-							$dataValues[$key][$vKey] = $this->renderRecord_SW($dataValues[$key][$vKey], $dsConf['TCEforms'], $CVTSconfig, $CVtable, $CVrow, '');
+							$dataValues[$key][$vKey] = $this->renderRecord_SW($dataValues[$key][$vKey], $dsConf['TCEforms'], $CVTSconfig, $CVtable, $CVrow, $CVfield);
 						}
 					}
 				}
