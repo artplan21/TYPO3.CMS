@@ -32,27 +32,15 @@ class LoginController {
 
 	// Internal, GPvars:
 	// GPvar: redirect_url; The URL to redirect to after login.
-	/**
-	 * @todo Define visibility
-	 */
 	public $redirect_url;
 
 	// GPvar: Defines which interface to load (from interface selector)
-	/**
-	 * @todo Define visibility
-	 */
 	public $GPinterface;
 
 	// GPvar: preset username
-	/**
-	 * @todo Define visibility
-	 */
 	public $u;
 
 	// GPvar: preset password
-	/**
-	 * @todo Define visibility
-	 */
 	public $p;
 
 	/**
@@ -61,67 +49,37 @@ class LoginController {
 	protected $openIdUrl;
 
 	// GPvar: If "L" is "OUT", then any logged in used is logged out. If redirect_url is given, we redirect to it
-	/**
-	 * @todo Define visibility
-	 */
 	public $L;
 
 	// Login-refresh boolean; The backend will call this script with this value set when the login is close to being expired and the form needs to be redrawn.
-	/**
-	 * @todo Define visibility
-	 */
 	public $loginRefresh;
 
 	// Value of forms submit button for login.
-	/**
-	 * @todo Define visibility
-	 */
 	public $commandLI;
 
 	// Internal, static:
 	// Set to the redirect URL of the form (may be redirect_url or "backend.php")
-	/**
-	 * @todo Define visibility
-	 */
 	public $redirectToURL;
 
 	// Internal, dynamic:
 	// Content accumulation
-	/**
-	 * @todo Define visibility
-	 */
 	public $content;
 
 	// A selector box for selecting value for "interface" may be rendered into this variable
-	/**
-	 * @todo Define visibility
-	 */
 	public $interfaceSelector;
 
 	// A selector box for selecting value for "interface" may be rendered into this variable
 	// this will have an onchange action which will redirect the user to the selected interface right away
-	/**
-	 * @todo Define visibility
-	 */
 	public $interfaceSelector_jump;
 
 	// A hidden field, if the interface is not set.
-	/**
-	 * @todo Define visibility
-	 */
 	public $interfaceSelector_hidden;
 
 	// Additional hidden fields to be placed at the login form
-	/**
-	 * @todo Define visibility
-	 */
 	public $addFields_hidden = '';
 
 	// sets the level of security. *'normal' = clear-text. 'challenged' = hashed
 	// password/username from form in $formfield_uident. 'superchallenged' = hashed password hashed again with username.
-	/**
-	 * @todo Define visibility
-	 */
 	public $loginSecurityLevel = 'superchallenged';
 
 	/**
@@ -140,7 +98,6 @@ class LoginController {
 	 * Initialize the login box. Will also react on a &L=OUT flag and exit.
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function init() {
 		// We need a PHP session session for most login levels
@@ -176,10 +133,7 @@ class LoginController {
 		// Do a logout if the command is set
 		if ($this->L == 'OUT' && is_object($GLOBALS['BE_USER'])) {
 			$GLOBALS['BE_USER']->logoff();
-			if ($this->redirect_url) {
-				HttpUtility::redirect($this->redirect_url);
-			}
-			die;
+			HttpUtility::redirect($this->redirect_url);
 		}
 	}
 
@@ -187,19 +141,32 @@ class LoginController {
 	 * Main function - creating the login/logout form
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function main() {
 		// Initialize template object:
-		$GLOBALS['TBE_TEMPLATE']->bodyTagAdditions = ' onload="startUp();"';
 		$GLOBALS['TBE_TEMPLATE']->moduleTemplate = $GLOBALS['TBE_TEMPLATE']->getHtmlTemplate('EXT:backend/Resources/Private/Templates/login.html');
 		/** @var $pageRenderer \TYPO3\CMS\Core\Page\PageRenderer */
 		$pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
-		$pageRenderer->loadExtJS();
-		$pageRenderer->loadPrototype();
-		$pageRenderer->loadScriptaculous();
-		// Set JavaScript for creating a MD5 hash of the password:
-		$GLOBALS['TBE_TEMPLATE']->JScode .= $this->getJScode();
+		$pageRenderer->loadJquery();
+
+		// support placeholders for IE9 and lower
+		$clientInfo = GeneralUtility::clientInfo();
+		if ($clientInfo['BROWSER'] == 'msie' && $clientInfo['VERSION'] <= 9) {
+			$pageRenderer->addJsLibrary('placeholders', 'contrib/placeholdersjs/placeholders.jquery.min.js');
+		}
+
+		$pageRenderer->loadRequireJsModule('TYPO3/CMS/Backend/Login');
+		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginScriptHook'])) {
+			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginScriptHook'] as $function) {
+				$params = array();
+				$JSCode = GeneralUtility::callUserFunction($function, $params, $this);
+				if ($JSCode) {
+					$GLOBALS['TBE_TEMPLATE']->JScode .= $JSCode;
+					break;
+				}
+			}
+		}
+
 		// Checking, if we should make a redirect.
 		// Might set JavaScript in the header to close window.
 		$this->checkRedirect();
@@ -227,7 +194,6 @@ class LoginController {
 	 * Outputting the accumulated content to screen
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function printContent() {
 		echo $this->content;
@@ -243,7 +209,6 @@ class LoginController {
 	 * This is drawn when NO login exists.
 	 *
 	 * @return string HTML output
-	 * @todo Define visibility
 	 */
 	public function makeLoginForm() {
 		$content = HtmlParser::getSubpart($GLOBALS['TBE_TEMPLATE']->moduleTemplate, '###LOGIN_FORM###');
@@ -276,7 +241,6 @@ class LoginController {
 	 * This is drawn if a user login already exists.
 	 *
 	 * @return string HTML output
-	 * @todo Define visibility
 	 */
 	public function makeLogoutForm() {
 		$content = HtmlParser::getSubpart($GLOBALS['TBE_TEMPLATE']->moduleTemplate, '###LOGOUT_FORM###');
@@ -300,18 +264,16 @@ class LoginController {
 	 *
 	 * @param string $content HTML content for the login form
 	 * @return string The HTML for the page.
-	 * @todo Define visibility
 	 */
 	public function wrapLoginForm($content) {
 		$mainContent = HtmlParser::getSubpart($GLOBALS['TBE_TEMPLATE']->moduleTemplate, '###PAGE###');
+
 		if ($GLOBALS['TBE_STYLES']['logo_login']) {
 			$logo = '<img src="' . htmlspecialchars(($GLOBALS['BACK_PATH'] . $GLOBALS['TBE_STYLES']['logo_login'])) . '" alt="" class="t3-login-logo" />';
 		} else {
-			$logo = '<img' . IconUtility::skinImg($GLOBALS['BACK_PATH'], 'gfx/typo3logo.gif', 'width="123" height="34"') . ' alt="" class="t3-login-logo" />';
+			$logo = '<img' . IconUtility::skinImg($GLOBALS['BACK_PATH'], 'gfx/typo3-transparent@2x.png', 'width="140" height="39"') . ' alt="" class="t3-login-logo t3-default-logo" />';
 		}
-		/** @var $browserWarning \TYPO3\CMS\Core\Messaging\FlashMessage */
-		$browserWarning = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Messaging\\FlashMessage', $GLOBALS['LANG']->getLL('warning.incompatibleBrowser') . ' ' . $GLOBALS['LANG']->getLL('warning.incompatibleBrowserInternetExplorer'), $GLOBALS['LANG']->getLL('warning.incompatibleBrowserHeadline'), FlashMessage::ERROR);
-		$browserWarning = $browserWarning->render();
+
 		$additionalCssClasses = array();
 		if ($this->isLoginInProgress()) {
 			$additionalCssClasses[] = 'error';
@@ -321,7 +283,7 @@ class LoginController {
 		}
 		$markers = array(
 			'LOGO' => $logo,
-			'LOGINBOX_IMAGE' => $this->makeLoginBoxImage(),
+			'LOGINBOX_IMAGE' => '',
 			'FORM' => $content,
 			'NEWS' => $this->makeLoginNews(),
 			'COPYRIGHT' => BackendUtility::TYPO3_copyRightNotice($GLOBALS['TYPO3_CONF_VARS']['SYS']['loginCopyrightShowVersion']),
@@ -333,7 +295,6 @@ class LoginController {
 			'INFO_ABOUT' => $GLOBALS['LANG']->getLL('info.about', TRUE),
 			'INFO_RELOAD' => $GLOBALS['LANG']->getLL('info.reset', TRUE),
 			'INFO' => $GLOBALS['LANG']->getLL('info.cookies_and_js', TRUE),
-			'WARNING_BROWSER_INCOMPATIBLE' => $browserWarning,
 			'ERROR_JAVASCRIPT' => $GLOBALS['LANG']->getLL('error.javascript', TRUE),
 			'ERROR_COOKIES' => $GLOBALS['LANG']->getLL('error.cookies', TRUE),
 			'ERROR_COOKIES_IGNORE' => $GLOBALS['LANG']->getLL('error.cookies_ignore', TRUE),
@@ -360,7 +321,6 @@ class LoginController {
 	 * Checking, if we should perform some sort of redirection OR closing of windows.
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function checkRedirect() {
 		// Do redirect:
@@ -387,8 +347,6 @@ class LoginController {
 			// Based on specific setting of interface we set the redirect script:
 			switch ($this->GPinterface) {
 				case 'backend':
-
-				case 'backend_old':
 					$this->redirectToURL = 'backend.php';
 					break;
 				case 'frontend':
@@ -425,7 +383,6 @@ class LoginController {
 	 * Making interface selector:
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function makeInterfaceSelectorBox() {
 		// Reset variables:
@@ -438,14 +395,14 @@ class LoginController {
 			// Only if more than one interface is defined will we show the selector:
 			if (count($parts) > 1) {
 				// Initialize:
-				$labels = array();
-				$labels['backend'] = $GLOBALS['LANG']->getLL('interface.backend');
-				$labels['backend_old'] = $GLOBALS['LANG']->getLL('interface.backend_old');
-				$labels['frontend'] = $GLOBALS['LANG']->getLL('interface.frontend');
-				$jumpScript = array();
-				$jumpScript['backend'] = 'backend.php';
-				$jumpScript['backend_old'] = 'backend.php';
-				$jumpScript['frontend'] = '../';
+				$labels = array(
+					'backend' => $GLOBALS['LANG']->getLL('interface.backend'),
+					'frontend' => $GLOBALS['LANG']->getLL('interface.frontend')
+				);
+				$jumpScript = array(
+					'backend' => 'backend.php',
+					'frontend' => '../'
+				);
 				// Traverse the interface keys:
 				foreach ($parts as $valueStr) {
 					$this->interfaceSelector .= '
@@ -454,10 +411,10 @@ class LoginController {
 							<option value="' . htmlspecialchars($jumpScript[$valueStr]) . '">' . htmlspecialchars($labels[$valueStr]) . '</option>';
 				}
 				$this->interfaceSelector = '
-						<select id="t3-interfaceselector" name="interface" class="c-interfaceselector" tabindex="3">' . $this->interfaceSelector . '
+						<select id="t3-interfaceselector" name="interface" class="form-control t3-interfaces input-lg" tabindex="3">' . $this->interfaceSelector . '
 						</select>';
 				$this->interfaceSelector_jump = '
-						<select id="t3-interfaceselector" name="interface" class="c-interfaceselector" tabindex="3" onchange="window.location.href=this.options[this.selectedIndex].value;">' . $this->interfaceSelector_jump . '
+						<select id="t3-interfaceselector" name="interface" class="form-control t3-interfaces input-lg" tabindex="3" onchange="window.location.href=this.options[this.selectedIndex].value;">' . $this->interfaceSelector_jump . '
 						</select>';
 			} elseif (!$this->redirect_url) {
 				// If there is only ONE interface value set and no redirect_url is present:
@@ -470,42 +427,11 @@ class LoginController {
 	 * Returns the login box image, whether the default or an image from the rotation folder.
 	 *
 	 * @return string HTML image tag.
-	 * @todo Define visibility
+	 * @deprecated since 6.3, see Deprecation-60559-MakeLoginBoxImage.rst
 	 */
 	public function makeLoginBoxImage() {
-		$loginboxImage = '';
-		// Look for rotation image folder:
-		if ($GLOBALS['TBE_STYLES']['loginBoxImage_rotationFolder']) {
-			$absPath = GeneralUtility::resolveBackPath(PATH_typo3 . $GLOBALS['TBE_STYLES']['loginBoxImage_rotationFolder']);
-			// Get rotation folder:
-			$dir = GeneralUtility::getFileAbsFileName($absPath);
-			if ($dir && @is_dir($dir)) {
-				// Get files for rotation into array:
-				$files = GeneralUtility::getFilesInDir($dir, 'png,jpg,gif');
-				// Pick random file:
-				$randImg = array_rand($files, 1);
-				// Get size of random file:
-				$imgSize = @getimagesize(($dir . $files[$randImg]));
-				$imgAuthor = is_array($GLOBALS['TBE_STYLES']['loginBoxImage_author']) && $GLOBALS['TBE_STYLES']['loginBoxImage_author'][$files[$randImg]] ? htmlspecialchars($GLOBALS['TBE_STYLES']['loginBoxImage_author'][$files[$randImg]]) : '';
-				// Create image tag:
-				if (is_array($imgSize)) {
-					$loginboxImage = '<img src="' . htmlspecialchars(($GLOBALS['TBE_STYLES']['loginBoxImage_rotationFolder'] . $files[$randImg])) . '" ' . $imgSize[3] . ' id="loginbox-image" alt="' . $imgAuthor . '" title="' . $imgAuthor . '" />';
-				}
-			}
-		} else {
-			// If no rotation folder configured, print default image:
-			// Development version
-			if (strstr(TYPO3_version, '-dev')) {
-				$loginImage = 'loginbox_image_dev.png';
-				$imagecopy = 'You are running a development version of TYPO3 ' . TYPO3_branch;
-			} else {
-				$loginImage = 'loginbox_image.jpg';
-				$imagecopy = 'Photo by J.C. Franca (www.digitalphoto.com.br)';
-			}
-			$loginboxImage = '<img' . IconUtility::skinImg($GLOBALS['BACK_PATH'], ('gfx/' . $loginImage), 'width="200" height="133"') . ' id="loginbox-image" alt="' . $imagecopy . '" title="' . $imagecopy . '" />';
-		}
-		// Return image tag:
-		return $loginboxImage;
+		GeneralUtility::logDeprecatedFunction();
+		return '';
 	}
 
 	/**
@@ -514,7 +440,6 @@ class LoginController {
 	 *
 	 * @return string HTML content
 	 * @credits Idea by Jan-Hendrik Heuing
-	 * @todo Define visibility
 	 */
 	public function makeLoginNews() {
 		$newsContent = '';
@@ -532,9 +457,9 @@ class LoginController {
 			$count = 1;
 			foreach ($systemNews as $newsItemData) {
 				$additionalClass = '';
-				if ($count == 1) {
+				if ($count === 1) {
 					$additionalClass = ' first-item';
-				} elseif ($count == count($systemNews)) {
+				} elseif ($count === count($systemNews)) {
 					$additionalClass = ' last-item';
 				}
 				$newsItemContent = $htmlParser->TS_transform_rte($htmlParser->TS_links_rte($newsItemData['content']));
@@ -578,14 +503,13 @@ class LoginController {
 	 * Returns the form tag
 	 *
 	 * @return string Opening form tag string
-	 * @todo Define visibility
 	 */
 	public function startForm() {
 		$output = '';
 		// The form defaults to 'no login'. This prevents plain
 		// text logins to the Backend. The 'sv' extension changes the form to
-		// use superchallenged method and rsaauth extension makes rsa authetication.
-		$form = '<form action="index.php" method="post" name="loginform" ' . 'onsubmit="alert(\'No authentication methods available. Please, ' . 'contact your TYPO3 administrator.\');return false">';
+		// use superchallenged method and rsaauth extension makes rsa authentication.
+		$form = '<form action="index.php" method="post" name="loginform" ' . 'onsubmit="alert(\'No authentication methods available. Please, contact your TYPO3 administrator.\');return false">';
 		// Call hooks. If they do not return anything, we fail to login
 		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginFormHook'])) {
 			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginFormHook'] as $function) {
@@ -597,7 +521,11 @@ class LoginController {
 				}
 			}
 		}
-		$output .= $form . '<input type="hidden" name="login_status" value="login" />' . '<input type="hidden" name="userident" value="" />' . '<input type="hidden" name="redirect_url" value="' . htmlspecialchars($this->redirectToURL) . '" />' . '<input type="hidden" name="loginRefresh" value="' . htmlspecialchars($this->loginRefresh) . '" />' . $this->interfaceSelector_hidden . $this->addFields_hidden;
+		$output .= $form . '<input type="hidden" name="login_status" value="login" />' .
+			'<input type="hidden" id="t3-field-userident" name="userident" value="" />' .
+			'<input type="hidden" name="redirect_url" value="' . htmlspecialchars($this->redirectToURL) . '" />' .
+			'<input type="hidden" name="loginRefresh" value="' . htmlspecialchars($this->loginRefresh) . '" />' .
+			$this->interfaceSelector_hidden . $this->addFields_hidden;
 		return $output;
 	}
 
@@ -605,89 +533,10 @@ class LoginController {
 	 * Creates JavaScript for the login form
 	 *
 	 * @return string JavaScript code
-	 * @todo Define visibility
+	 * @deprecated since TYPO3 6.3, not in use anymore
 	 */
 	public function getJScode() {
-		$JSCode = '';
-		if (is_array($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginScriptHook'])) {
-			foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['typo3/index.php']['loginScriptHook'] as $function) {
-				$params = array();
-				$JSCode = GeneralUtility::callUserFunction($function, $params, $this);
-				if ($JSCode) {
-					break;
-				}
-			}
-		}
-		$JSCode .= $GLOBALS['TBE_TEMPLATE']->wrapScriptTags('
-			function startUp() {
-					// If the login screen is shown in the login_frameset window for re-login, then try to get the username of the current/former login from opening windows main frame:
-				try {
-					if (parent.opener && parent.opener.TS && parent.opener.TS.username && document.loginform && document.loginform.username) {
-						document.loginform.username.value = parent.opener.TS.username;
-					}
-				}
-				catch(error) {
-					//continue
-				}
-
-					// Wait a few millisecons before calling checkFocus(). This might be necessary because some browsers need some time to auto-fill in the form fields
-				window.setTimeout("checkFocus()", 50);
-			}
-
-				// This moves focus to the right input field:
-			function checkFocus() {
-					// If for some reason there already is a username in the username form field, move focus to the password field:
-				if (document.loginform.username && document.loginform.username.value == "") {
-					document.loginform.username.focus();
-				} else if (document.loginform.p_field && document.loginform.p_field.type!="hidden") {
-					document.loginform.p_field.focus();
-				}
-			}
-
-				// This function shows a warning, if user has capslock enabled
-				// parameter showWarning: shows warning if TRUE and capslock active, otherwise only hides warning, if capslock gets inactive
-			function checkCapslock(e, showWarning) {
-				if (!isCapslock(e)) {
-					document.getElementById(\'t3-capslock\').style.display = \'none\';
-				} else if (showWarning) {
-					document.getElementById(\'t3-capslock\').style.display = \'block\';
-				}
-			}
-
-				// Checks weather capslock is enabled (returns TRUE if enabled, false otherwise)
-				// thanks to http://24ways.org/2007/capturing-caps-lock
-
-			function isCapslock(e) {
-				var ev = e ? e : window.event;
-				if (!ev) {
-					return;
-				}
-				var targ = ev.target ? ev.target : ev.srcElement;
-				// get key pressed
-				var which = -1;
-				if (ev.which) {
-					which = ev.which;
-				} else if (ev.keyCode) {
-					which = ev.keyCode;
-				}
-				// get shift status
-				var shift_status = false;
-				if (ev.shiftKey) {
-					shift_status = ev.shiftKey;
-				} else if (ev.modifiers) {
-					shift_status = !!(ev.modifiers & 4);
-				}
-				return (((which >= 65 && which <= 90) && !shift_status) ||
-					((which >= 97 && which <= 122) && shift_status));
-			}
-
-				// prevent opening the login form in the backend frameset
-			if (top.location.href != self.location.href) {
-				top.location.href = self.location.href;
-			}
-
-			');
-		return $JSCode;
+		GeneralUtility::logDeprecatedFunction();
 	}
 
 	/**

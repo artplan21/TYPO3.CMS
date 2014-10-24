@@ -29,7 +29,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 *
 	 * @return void
 	 * @see AbstractMenuContentObject::procesItemStates(), makeGifs()
-	 * @todo Define visibility
 	 */
 	public function generate() {
 		$splitCount = count($this->menuArr);
@@ -73,7 +72,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return void
 	 * @access private
 	 * @see generate()
-	 * @todo Define visibility
 	 */
 	public function makeGifs($conf, $resKey) {
 		$isGD = $GLOBALS['TYPO3_CONF_VARS']['GFX']['gdlib'];
@@ -277,7 +275,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return array Array with keys "H" and "W" which are in themselves arrays with the heights and widths of menu items inside. This can be used to find the max/min size of the menu items.
 	 * @access private
 	 * @see makeGifs()
-	 * @todo Define visibility
 	 */
 	public function findLargestDims($conf, $items, $Hobjs, $Wobjs, $minDim, $maxDim) {
 		$totalWH = array(
@@ -359,7 +356,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * During the execution of this function many internal methods prefixed "extProc_" from this class is called and many of these are for now dummy functions. But they can be used for processing as they are used by the GMENU_LAYERS
 	 *
 	 * @return string The HTML for the menu (returns result through $this->extProc_finish(); )
-	 * @todo Define visibility
 	 */
 	public function writeMenu() {
 		if (is_array($this->menuArr) && is_array($this->result) && count($this->result) && is_array($this->result['NO'])) {
@@ -370,6 +366,9 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 			$this->WMmenuItems = count($this->result['NO']);
 			$this->WMsubmenuObjSuffixes = $this->tmpl->splitConfArray(array('sOSuffix' => $this->mconf['submenuObjSuffixes']), $this->WMmenuItems);
 			$this->extProc_init();
+			if (!isset($GLOBALS['TSFE']->additionalJavaScript['JSImgCode'])) {
+				$GLOBALS['TSFE']->additionalJavaScript['JSImgCode'] = '';
+			}
 			for ($key = 0; $key < $this->WMmenuItems; $key++) {
 				if ($this->result['NO'][$key]['output_file']) {
 					// Initialize the cObj with the page record of the menu item
@@ -412,8 +411,8 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 						$this->I['name'] = ' ' . $this->nameAttribute . '="' . $this->I['theName'] . '"';
 						$this->I['linkHREF']['onMouseover'] = $this->WMfreezePrefix . 'over(\'' . $this->I['theName'] . '\');';
 						$this->I['linkHREF']['onMouseout'] = $this->WMfreezePrefix . 'out(\'' . $this->I['theName'] . '\');';
-						$GLOBALS['TSFE']->JSImgCode .= LF . $this->I['theName'] . '_n=new Image(); ' . $this->I['theName'] . '_n.src = "' . $GLOBALS['TSFE']->absRefPrefix . $this->I['val']['output_file'] . '"; ';
-						$GLOBALS['TSFE']->JSImgCode .= LF . $this->I['theName'] . '_h=new Image(); ' . $this->I['theName'] . '_h.src = "' . $GLOBALS['TSFE']->absRefPrefix . $this->result['RO'][$key]['output_file'] . '"; ';
+						$GLOBALS['TSFE']->additionalJavaScript['JSImgCode'] .= LF . $this->I['theName'] . '_n=new Image(); ' . $this->I['theName'] . '_n.src = "' . $GLOBALS['TSFE']->absRefPrefix . $this->I['val']['output_file'] . '"; ';
+						$GLOBALS['TSFE']->additionalJavaScript['JSImgCode'] .= LF . $this->I['theName'] . '_h=new Image(); ' . $this->I['theName'] . '_h.src = "' . $GLOBALS['TSFE']->absRefPrefix . $this->result['RO'][$key]['output_file'] . '"; ';
 						$GLOBALS['TSFE']->imagesOnPage[] = $this->result['RO'][$key]['output_file'];
 						$GLOBALS['TSFE']->setJS('mouseOver');
 						$this->extProc_RO($key);
@@ -444,10 +443,10 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 					$this->I['theItem'] = implode('', $this->I['parts']);
 					$this->I['theItem'] = $this->extProc_beforeAllWrap($this->I['theItem'], $key);
 					// wrap:
-					$this->I['theItem'] = $this->tmpl->wrap($this->I['theItem'], $this->I['val']['wrap']);
+					$this->I['theItem'] = $this->WMcObj->wrap($this->I['theItem'], $this->I['val']['wrap']);
 					// allWrap:
 					$allWrap = isset($this->I['val']['allWrap.']) ? $this->WMcObj->stdWrap($this->I['val']['allWrap'], $this->I['val']['allWrap.']) : $this->I['val']['allWrap'];
-					$this->I['theItem'] = $this->tmpl->wrap($this->I['theItem'], $allWrap);
+					$this->I['theItem'] = $this->WMcObj->wrap($this->I['theItem'], $allWrap);
 					if ($this->I['val']['subst_elementUid']) {
 						$this->I['theItem'] = str_replace('{elementUid}', $this->I['uid'], $this->I['theItem']);
 					}
@@ -470,7 +469,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_init() {
 
@@ -483,7 +481,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_RO($key) {
 
@@ -496,7 +493,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_beforeLinking($key) {
 
@@ -511,7 +507,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return void
 	 * @access private
 	 * @see writeMenu(), AbstractMenuContentObject::subMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_afterLinking($key) {
 		// Add part to the accumulated result + fetch submenus
@@ -519,7 +514,7 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 			$this->I['theItem'] .= $this->subMenu($this->I['uid'], $this->WMsubmenuObjSuffixes[$key]['sOSuffix']);
 		}
 		$part = isset($this->I['val']['wrapItemAndSub.']) ? $this->WMcObj->stdWrap($this->I['val']['wrapItemAndSub'], $this->I['val']['wrapItemAndSub.']) : $this->I['val']['wrapItemAndSub'];
-		$this->WMresult .= $part ? $this->tmpl->wrap($this->I['theItem'], $part) : $this->I['theItem'];
+		$this->WMresult .= $part ? $this->WMcObj->wrap($this->I['theItem'], $part) : $this->I['theItem'];
 	}
 
 	/**
@@ -530,7 +525,6 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return string The modified version of $item, going back into $this->I['theItem']
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_beforeAllWrap($item, $key) {
 		return $item;
@@ -542,14 +536,13 @@ class GraphicalMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\
 	 * @return string The total menu content should be returned by this function
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_finish() {
 		// stdWrap:
 		if (is_array($this->mconf['stdWrap.'])) {
 			$this->WMresult = $this->WMcObj->stdWrap($this->WMresult, $this->mconf['stdWrap.']);
 		}
-		return $this->tmpl->wrap($this->WMresult, $this->mconf['wrap']) . $this->WMextraScript;
+		return $this->WMcObj->wrap($this->WMresult, $this->mconf['wrap']) . $this->WMextraScript;
 	}
 
 }

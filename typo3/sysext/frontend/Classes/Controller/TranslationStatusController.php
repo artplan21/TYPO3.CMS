@@ -28,7 +28,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 * Returns the menu array
 	 *
 	 * @return array
-	 * @todo Define visibility
 	 */
 	public function modMenu() {
 		global $LANG;
@@ -56,7 +55,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 * MAIN function for page information of localization
 	 *
 	 * @return string Output HTML for the module.
-	 * @todo Define visibility
 	 */
 	public function main() {
 		global $BACK_PATH, $LANG, $SOBE;
@@ -98,7 +96,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 *
 	 * @param array $tree The Page tree data
 	 * @return string HTML for the localization information table.
-	 * @todo Define visibility
 	 */
 	public function renderL10nTable(&$tree) {
 		global $LANG;
@@ -255,15 +252,17 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 					) . '">' . IconUtility::getSpriteIcon('actions-document-new') . '</a></td>';
 			}
 		}
-		$output = '
-			<tr class="t3-row-header">
-				' . implode('
-				', $tCells) . '
-			</tr>' . $output;
-		$output = '
 
-		<table border="0" cellspacing="0" cellpadding="0" id="langTable" class="typo3-dblist">' . $output . '
-		</table>';
+		$output = '<table id="langTable" class="t3-table">' .
+			'<thead>' .
+				'<tr>' .
+					implode('', $tCells) .
+				'</tr>' .
+				'</thead>' .
+				'<tbody>' .
+					$output .
+				'</tbody>' .
+			'</table>';
 		return $output;
 	}
 
@@ -271,7 +270,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 * Selects all system languages (from sys_language)
 	 *
 	 * @return array System language records in an array.
-	 * @todo Define visibility
 	 */
 	public function getSystemLanguages() {
 		if (!$GLOBALS['BE_USER']->user['admin'] && strlen($GLOBALS['BE_USER']->groupData['allowed_languages'])) {
@@ -297,7 +295,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 * @param integer $pageId Page ID to look up for.
 	 * @param integer $langId Language UID to select for.
 	 * @return array pages_languages_overlay record
-	 * @todo Define visibility
 	 */
 	public function getLangStatus($pageId, $langId) {
 		$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery(
@@ -323,7 +320,6 @@ class TranslationStatusController extends \TYPO3\CMS\Backend\Module\AbstractFunc
 	 * @param integer $pageId Page id to select for.
 	 * @param integer $sysLang Sys language uid
 	 * @return integer Number of content elements from the PID where the language is set to a certain value.
-	 * @todo Define visibility
 	 */
 	public function getContentElementCount($pageId, $sysLang) {
 		$count = $GLOBALS['TYPO3_DB']->exec_SELECTcountRows('uid', 'tt_content', 'pid=' . (int)$pageId . ' AND sys_language_uid=' . (int)$sysLang . BackendUtility::deleteClause('tt_content') . BackendUtility::versioningPlaceholderClause('tt_content'));

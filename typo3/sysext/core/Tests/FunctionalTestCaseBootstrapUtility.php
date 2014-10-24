@@ -215,7 +215,7 @@ class FunctionalTestCaseBootstrapUtility {
 					1376745645
 				);
 			}
-			$destinationPath = $this->instancePath . '/typo3conf/ext/'. basename($absoluteExtensionPath);
+			$destinationPath = $this->instancePath . '/typo3conf/ext/' . basename($absoluteExtensionPath);
 			$success = symlink($absoluteExtensionPath, $destinationPath);
 			if (!$success) {
 				throw new Exception(
@@ -269,7 +269,8 @@ class FunctionalTestCaseBootstrapUtility {
 		$databaseUsername = getenv('typo3DatabaseUsername');
 		$databasePassword = getenv('typo3DatabasePassword');
 		$databasePort = getenv('typo3DatabasePort');
-		if ($databaseName || $databaseHost || $databaseUsername || $databasePassword || $databasePort) {
+		$databaseSocket = getenv('typo3DatabaseSocket');
+		if ($databaseName || $databaseHost || $databaseUsername || $databasePassword || $databasePort || $databaseSocket) {
 			// Try to get database credentials from environment variables first
 			$originalConfigurationArray = array(
 				'DB' => array(),
@@ -289,6 +290,9 @@ class FunctionalTestCaseBootstrapUtility {
 			if ($databasePort) {
 				$originalConfigurationArray['DB']['port'] = $databasePort;
 			}
+			if ($databaseSocket) {
+				$originalConfigurationArray['DB']['socket'] = $databaseSocket;
+			}
 		} elseif (file_exists(ORIGINAL_ROOT . 'typo3conf/LocalConfiguration.php')) {
 			// See if a LocalConfiguration file exists in "parent" instance to get db credentials from
 			$originalConfigurationArray = require ORIGINAL_ROOT . 'typo3conf/LocalConfiguration.php';
@@ -301,9 +305,9 @@ class FunctionalTestCaseBootstrapUtility {
 		}
 
 		// Base of final LocalConfiguration is core factory configuration
-		$finalConfigurationArray = require ORIGINAL_ROOT .'typo3/sysext/core/Configuration/FactoryConfiguration.php';
+		$finalConfigurationArray = require ORIGINAL_ROOT . 'typo3/sysext/core/Configuration/FactoryConfiguration.php';
 
-		$this->mergeRecursiveWithOverrule($finalConfigurationArray, require ORIGINAL_ROOT .'typo3/sysext/core/Build/Configuration/FunctionalTestsConfiguration.php');
+		$this->mergeRecursiveWithOverrule($finalConfigurationArray, require ORIGINAL_ROOT . 'typo3/sysext/core/Build/Configuration/FunctionalTestsConfiguration.php');
 		$this->mergeRecursiveWithOverrule($finalConfigurationArray, $configurationToMerge);
 		$finalConfigurationArray['DB'] = $originalConfigurationArray['DB'];
 		// Calculate and set new database name

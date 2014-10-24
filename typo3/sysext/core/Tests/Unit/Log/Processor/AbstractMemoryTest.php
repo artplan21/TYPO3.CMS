@@ -15,15 +15,14 @@ namespace TYPO3\CMS\Core\Tests\Unit\Log\Processor;
  */
 
 /**
- * Testcase for \TYPO3\CMS\Core\Log\Processor\AbstractMemoryProcessor
+ * Test case
  *
  * @author Steffen Müller <typo3@t3node.com>
  */
-class AbstractMemoryTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
+class AbstractMemoryProcessorTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 	/**
 	 * @test
-	 * @todo Define visibility
 	 */
 	public function getRealMemoryUsageGetsRealMemoryUsage() {
 		/** @var $processor \TYPO3\CMS\Core\Log\Processor\AbstractMemoryProcessor */
@@ -33,7 +32,6 @@ class AbstractMemoryTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 	/**
 	 * @test
-	 * @todo Define visibility
 	 */
 	public function setRealMemoryUsageSetsRealMemoryUsage() {
 		/** @var $processor \TYPO3\CMS\Core\Log\Processor\AbstractMemoryProcessor */
@@ -44,7 +42,6 @@ class AbstractMemoryTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 	/**
 	 * @test
-	 * @todo Define visibility
 	 */
 	public function getFormatSizeGetsFormatSize() {
 		/** @var $processor \TYPO3\CMS\Core\Log\Processor\AbstractMemoryProcessor */
@@ -54,7 +51,6 @@ class AbstractMemoryTest extends \TYPO3\CMS\Core\Tests\UnitTestCase {
 
 	/**
 	 * @test
-	 * @todo Define visibility
 	 */
 	public function setFormatSizeSetsFormatSize() {
 		/** @var $processor \TYPO3\CMS\Core\Log\Processor\AbstractMemoryProcessor */

@@ -1,30 +1,17 @@
 <?php
 namespace TYPO3\CMS\Rtehtmlarea;
-
-/***************************************************************
- *  Copyright notice
+/**
+ * This file is part of the TYPO3 CMS project.
  *
- *  All rights reserved
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
  *
- *  This script is part of the TYPO3 project. The TYPO3 project is
- *  free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
  *
- *  The GNU General Public License can be found at
- *  http://www.gnu.org/copyleft/gpl.html.
- *  A copy is found in the text file GPL.txt and important notices to the license
- *  from the author is found in LICENSE.txt distributed with these scripts.
- *
- *
- *  This script is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  This copyright notice MUST APPEAR in all copies of the script!
- ***************************************************************/
+ * The TYPO3 project - inspiring people to share!
+ */
 
 use TYPO3\CMS\Backend\Utility\BackendUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
@@ -299,7 +286,6 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	 * Generate JS code to be used on the link insert/modify dialogue
 	 *
 	 * @return 	string		the generated JS code
-	 * @todo Define visibility
 	 */
 	public function getJSCode() {
 		// BEGIN accumulation of header JavaScript:
@@ -581,7 +567,7 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 			. ' value="' . htmlspecialchars(($this->curUrlInfo['act'] == 'url' ? $this->curUrlInfo['info'] : 'http://'))
 			. '" /> ' . '<input type="submit" value="' . $GLOBALS['LANG']->getLL('setLink', TRUE)
 			. '" onclick="if (/^[A-Za-z0-9_+]{1,8}:/.test(document.ltargetform.lurl.value)) { '
-			.' browse_links_setHref(document.ltargetform.lurl.value); } else { browse_links_setHref(\'http://\''
+			. ' browse_links_setHref(document.ltargetform.lurl.value); } else { browse_links_setHref(\'http://\''
 			. '+document.ltargetform.lurl.value); }; browse_links_setAdditionalValue(\'data-htmlarea-external\', \'1\');'
 			. 'return link_current();" /></td>
 								</tr>';
@@ -711,7 +697,10 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Wrap in form
+	 *
+	 * @param string $string
+	 * @return string
 	 */
 	public function wrapInForm($string) {
 		$form = '
@@ -739,7 +728,9 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Add page id selector
+	 *
+	 * @return string
 	 */
 	public function addPageIdSelector() {
 		if ($this->act == 'page' && isset($this->buttonConfig['pageIdSelector.']['enabled'])
@@ -758,7 +749,9 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Add rel field
+	 *
+	 * @return string
 	 */
 	public function addRelField() {
 		if (($this->act == 'page' || $this->act == 'url' || $this->act == 'file')
@@ -777,7 +770,9 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Add query parameter selector
+	 *
+	 * @return string
 	 */
 	public function addQueryParametersSelector() {
 		if ($this->act == 'page' && isset($this->buttonConfig['queryParametersSelector.']['enabled'])
@@ -796,7 +791,9 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Add target selector
+	 *
+	 * @return string
 	 */
 	public function addTargetSelector() {
 		if ($this->act === 'mail') {
@@ -927,7 +924,9 @@ class BrowseLinks extends \TYPO3\CMS\Recordlist\Browser\ElementBrowser {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Add title selector
+	 *
+	 * @return string
 	 */
 	public function addTitleSelector() {
 		$title = $this->setTitle ?: ($this->setClass || !$this->classesAnchorDefault[$this->act] ? '' : $this->classesAnchorDefaultTitle[$this->act]);

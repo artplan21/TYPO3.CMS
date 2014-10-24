@@ -34,19 +34,17 @@ HTMLArea.MicrodataSchema = Ext.extend(HTMLArea.Plugin, {
 		/*
 		 * Registering the buttons
 		 */
-		var buttonList = this.buttonList, buttonId;
-		for (var i = 0, n = buttonList.length; i < n; ++i) {
-			var button = buttonList[i];
-			buttonId = button[0];
-			var buttonConfiguration = {
-				id		: buttonId,
-				tooltip		: this.localize(buttonId + '-Tooltip'),
-				iconCls		: 'htmlarea-action-' + button[2],
-				action		: 'onButtonPress',
-				context		: button[1]
-			};
-			this.registerButton(buttonConfiguration);
-		}
+		var button = this.buttonList[0];
+		var buttonId = button[0];
+		var buttonConfiguration = {
+			id		: buttonId,
+			tooltip		: this.localize(buttonId + '-Tooltip'),
+			iconCls		: 'htmlarea-action-' + button[2],
+			action		: 'onButtonPress',
+			context		: button[1]
+		};
+		this.registerButton(buttonConfiguration);
+		return true;
 	},
 	/*
 	 * The list of buttons added by this plugin
@@ -325,23 +323,28 @@ HTMLArea.MicrodataSchema = Ext.extend(HTMLArea.Plugin, {
 	 * Set microdata attributes of the element
 	 */
 	setMicrodataAttributes: function (element) {
-		var comboFields = this.fieldset.findByType('combo');
-		Ext.each(comboFields, function (field) {
-			var itemId = field.getItemId();
-			var value = field.getValue();
-			switch (itemId) {
-				case 'itemprop':
-				case 'itemtype':
-					element.setAttribute(itemId, (value === 'none') ? '' : value);
-					break;
+		if (this.fieldset) {
+			var comboFields = this.fieldset.findByType('combo');
+			for (var i = comboFields.length; --i >= 0;) {
+				var field = comboFields[i];
+				var itemId = field.getItemId();
+				var value = field.getValue();
+				switch (itemId) {
+					case 'itemprop':
+					case 'itemtype':
+						element.setAttribute(itemId, (value === 'none') ? '' : value);
+						break;
+				}
 			}
-		}, this);
-		var itemScopeField = this.fieldset.find('itemId', 'itemscope')[0];
-		if (itemScopeField.getValue()) {
-			element.setAttribute('itemscope', 'itemscope');
-		} else {
-			element.removeAttribute('itemscope');
-			element.removeAttribute('itemtype');
+			var itemScopeField = this.fieldset.find('itemId', 'itemscope')[0];
+			if (itemScopeField) {
+				if (itemScopeField.getValue()) {
+					element.setAttribute('itemscope', 'itemscope');
+				} else {
+					element.removeAttribute('itemscope');
+					element.removeAttribute('itemtype');
+				}
+			}
 		}
 	},
 	/*

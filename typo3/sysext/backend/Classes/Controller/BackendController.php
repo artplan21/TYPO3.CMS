@@ -47,18 +47,16 @@ class BackendController {
 	protected $debug;
 
 	/**
+	 * @var \TYPO3\CMS\Backend\Domain\Repository\Module\BackendModuleRepository
+	 */
+	protected $backendModuleRepository;
+
+	/**
 	 * Object for loading backend modules
 	 *
 	 * @var \TYPO3\CMS\Backend\Module\ModuleLoader
 	 */
 	protected $moduleLoader;
-
-	/**
-	 * module menu generating object
-	 *
-	 * @var \TYPO3\CMS\Backend\View\ModuleMenuView
-	 */
-	protected $moduleMenu;
 
 	/**
 	 * Pagerenderer
@@ -78,15 +76,17 @@ class BackendController {
 	 * Constructor
 	 */
 	public function __construct() {
+		$this->backendModuleRepository = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Domain\\Repository\\Module\\BackendModuleRepository');
+
 		// Set debug flag for BE development only
 		$this->debug = (int)$GLOBALS['TYPO3_CONF_VARS']['BE']['debug'] === 1;
 		// Initializes the backend modules structure for use later.
 		$this->moduleLoader = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Module\\ModuleLoader');
 		$this->moduleLoader->load($GLOBALS['TBE_MODULES']);
-		$this->moduleMenu = GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\View\\ModuleMenuView');
 		$this->pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
 		$this->pageRenderer->loadScriptaculous('builder,effects,controls,dragdrop');
 		$this->pageRenderer->loadExtJS();
+		$this->pageRenderer->loadJquery(NULL, NULL, \TYPO3\CMS\Core\Page\PageRenderer::JQUERY_NAMESPACE_DEFAULT_NOCONFLICT);
 		$this->pageRenderer->enableExtJSQuickTips();
 		$this->pageRenderer->addJsInlineCode('consoleOverrideWithDebugPanel', '//already done', FALSE);
 		$this->pageRenderer->addExtDirectCode();
@@ -99,7 +99,6 @@ class BackendController {
 			'md5' => 'sysext/backend/Resources/Public/JavaScript/md5.js',
 			'toolbarmanager' => 'sysext/backend/Resources/Public/JavaScript/toolbarmanager.js',
 			'modulemenu' => 'sysext/backend/Resources/Public/JavaScript/modulemenu.js',
-			'iecompatibility' => 'sysext/backend/Resources/Public/JavaScript/iecompatibility.js',
 			'evalfield' => 'sysext/backend/Resources/Public/JavaScript/jsfunc.evalfield.js',
 			'flashmessages' => 'sysext/backend/Resources/Public/JavaScript/flashmessages.js',
 			'tabclosemenu' => 'js/extjs/ux/ext.ux.tabclosemenu.js',
@@ -170,7 +169,8 @@ class BackendController {
 		<div id="typo3-top-container" class="x-hide-display">
 			<div id="typo3-logo">' . $logo->render() . '</div>
 			<div id="typo3-top" class="typo3-top-toolbar">' . $this->renderToolbar() . '</div>
-		</div>';
+		</div>
+		' . $this->generateModuleMenu();
 		/******************************************************
 		 * Now put the complete backend document together
 		 ******************************************************/
@@ -190,6 +190,7 @@ class BackendController {
 		$this->generateJavascript();
 		$this->pageRenderer->addJsInlineCode('BackendInlineJavascript', $this->js, FALSE);
 		$this->loadResourcesForRegisteredNavigationComponents();
+
 		// Add state provider
 		$GLOBALS['TBE_TEMPLATE']->setExtDirectStateProvider();
 		$states = $GLOBALS['BE_USER']->uc['BackendComponents']['States'];
@@ -200,9 +201,11 @@ class BackendController {
 				autoRead: false
 			}));
 		';
+
 		if ($states) {
 			$extOnReadyCode .= 'Ext.state.Manager.getProvider().initState(' . json_encode($states) . ');';
 		}
+
 		$extOnReadyCode .= '
 			TYPO3.Backend = new TYPO3.Viewport(TYPO3.Viewport.configuration);
 			if (typeof console === "undefined") {
@@ -283,7 +286,7 @@ class BackendController {
 		}
 		$toolbar = '<ul id="typo3-toolbar">';
 		$toolbar .= '<li>' . $this->getLoggedInUserLabel() . '</li>';
-		$toolbar .= '<li class="separator"><div id="logout-button" class="toolbar-item no-separator">' . $this->moduleMenu->renderLogoutButton() . '</div></li>';
+		$toolbar .= '<li class="separator"><div id="logout-button" class="toolbar-item no-separator">' . $this->renderLogoutButton() . '</div></li>';
 		$i = 0;
 		$numberOfToolbarItems = count($this->toolbarItems);
 		foreach ($this->toolbarItems as $key => $toolbarItem) {
@@ -475,7 +478,7 @@ class BackendController {
 			'PATH_typo3' => $pathTYPO3,
 			'PATH_typo3_enc' => rawurlencode($pathTYPO3),
 			'username' => htmlspecialchars($GLOBALS['BE_USER']->user['username']),
-			'uniqueID' => GeneralUtility::shortMD5(uniqid('')),
+			'uniqueID' => GeneralUtility::shortMD5(uniqid('', TRUE)),
 			'securityLevel' => $this->loginSecurityLevel,
 			'TYPO3_mainDir' => TYPO3_mainDir,
 			'pageModule' => $pageModule,
@@ -721,4 +724,47 @@ class BackendController {
 		}
 	}
 
+	/**
+	 * renders the logout button form
+	 *
+	 * @return string Html code snippet displaying the logout button
+	 */
+	protected function renderLogoutButton() {
+		// show logout or "exit" (from switch user mode) label
+		$buttonLabel = 'LLL:EXT:lang/locallang_core.xlf:' . ($GLOBALS['BE_USER']->user['ses_backuserid'] ? 'buttons.exit' : 'buttons.logout');
+		$buttonForm = '
+		<form action="logout.php" target="_top">
+			<input type="submit" id="logout-submit-button" value="' . $GLOBALS['LANG']->sL($buttonLabel, TRUE) . '" />
+		</form>';
+		return $buttonForm;
+	}
+
+	/**
+	 * loads all modules from the repository
+	 * and renders it with a template
+	 *
+	 * @return string
+	 */
+	protected function generateModuleMenu() {
+		$moduleStorage = $this->backendModuleRepository->loadAllowedModules();
+
+		/** @var $view \TYPO3\CMS\Fluid\View\StandaloneView */
+		$view = GeneralUtility::makeInstance('TYPO3\\CMS\\Fluid\\View\\StandaloneView');
+		$view->setTemplatePathAndFilename(GeneralUtility::getFileAbsFileName('EXT:backend/Resources/Private/Templates/ModuleMenu/Main.html'));
+		$view->assign('modules', $moduleStorage);
+		return $view->render();
+	}
+
+	/**
+	 * Returns the Module menu for the AJAX API
+	 *
+	 * @param array $params
+	 * @param \TYPO3\CMS\Core\Http\AjaxRequestHandler $ajaxRequestHandler
+	 * @return void
+	 */
+	public function getModuleMenuForReload($params, $ajaxRequestHandler) {
+		$content = $this->generateModuleMenu();
+		$ajaxRequestHandler->addContent('menu', $content);
+		$ajaxRequestHandler->setContentFormat('json');
+	}
 }

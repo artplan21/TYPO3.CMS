@@ -35,18 +35,19 @@ class LoginFormHook {
 		if ($pObj->loginSecurityLevel === 'rsa') {
 			/** @var $pageRenderer \TYPO3\CMS\Core\Page\PageRenderer */
 			$pageRenderer = $GLOBALS['TBE_TEMPLATE']->getPageRenderer();
-			$javascriptPath = '../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('rsaauth') . 'resources/';
+			$javascriptPath = '../' . \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::siteRelPath('rsaauth') . 'Resources/Public/JavaScript/';
 			$files = array(
 				'jsbn/jsbn.js',
 				'jsbn/prng4.js',
 				'jsbn/rng.js',
 				'jsbn/rsa.js',
-				'jsbn/base64.js',
-				'BackendLoginFormRsaEncryption.js'
+				'jsbn/base64.js'
 			);
 			foreach ($files as $file) {
 				$pageRenderer->addJsFile($javascriptPath . $file);
 			}
+
+			$pageRenderer->loadRequireJsModule('TYPO3/CMS/Rsaauth/BackendLoginFormRsaEncryption');
 
 			return '<form action="index.php" id="typo3-login-form" method="post" name="loginform">';
 		}

@@ -24,39 +24,45 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  *
  * As for examples there are lots of them if you search for classes which extends \TYPO3\CMS\Backend\Module\BaseScriptClass
  * However you can see a prototype example of how a module might use this class in an index.php file typically hosting a backend module.
- * NOTICE: This example only outlines the basic structure of how this class is used. You should consult the documentation and other real-world examples for some actual things to do when building modules.
  *
- * TYPICAL 'HEADER' OF A BACKEND MODULE:
- * unset($MCONF);
- * require ('conf.php');
- * require ($BACK_PATH.'init.php');
- * $GLOBALS['LANG']->includeLLFile('EXT:prototype/locallang.php');
- * $GLOBALS['BE_USER']->modAccess($MCONF,1);
+ * NOTICE: This example only outlines the basic structure of how this class is used.
+ * You should consult the documentation and other real-world examples for some actual things to do when building modules.
  *
- * SC_mod_prototype EXTENDS THE CLASS \TYPO3\CMS\Backend\Module\BaseScriptClass with a main() and printContent() function:
+ * TYPICAL SETUP OF A BACKEND MODULE:
  *
- * class SC_mod_prototype extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
+ * PrototypeController EXTENDS THE CLASS \TYPO3\CMS\Backend\Module\BaseScriptClass with a main() and printContent() function:
+ *
+ * namespace Vendor\Prototype\Controller;
+ *
+ * class PrototypeController extends \TYPO3\CMS\Backend\Module\BaseScriptClass {
+ * 	public function __construct() {
+ * 		$GLOBALS['LANG']->includeLLFile('EXT:prototype/Resources/Private/Language/locallang.xlf');
+ * 		$GLOBALS['BE_USER']->modAccess($GLOBALS['MCONF'], TRUE);
+ * 	}
+ * }
+ *
  * MAIN FUNCTION - HERE YOU CREATE THE MODULE CONTENT IN $this->content
- * function main() {
- * TYPICALLY THE INTERNAL VAR, $this->doc is instantiated like this:
- * $this->doc = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Template\\DocumentTemplate');
- * TYPICALLY THE INTERNAL VAR, $this->backPath is set like this:
- * $this->backPath = $this->doc->backPath = $GLOBALS['BACK_PATH'];
- * ... AND OF COURSE A LOT OF OTHER THINGS GOES ON - LIKE PUTTING CONTENT INTO $this->content
- * $this->content='';
+ * public function main() {
+ * 	TYPICALLY THE INTERNAL VAR, $this->doc is instantiated like this:
+ * 	$this->doc = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('TYPO3\\CMS\\Backend\\Template\\DocumentTemplate');
+ * 	TYPICALLY THE INTERNAL VAR, $this->backPath is set like this:
+ * 	$this->backPath = $this->doc->backPath = $GLOBALS['BACK_PATH'];
+ * 	... AND OF COURSE A LOT OF OTHER THINGS GOES ON - LIKE PUTTING CONTENT INTO $this->content
+ * 	$this->content='';
  * }
  * PRINT CONTENT - DONE AS THE LAST THING
- * function printContent() {
- * echo $this->content;
- * }
+ * public function printContent() {
+ * 	echo $this->content;
  * }
  *
  * MAKE INSTANCE OF THE SCRIPT CLASS AND CALL init()
- * $SOBE = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('SC_mod_prototype');
+ * $SOBE = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance('Vendor\\Prototype\\Controller\\PrototypeController');
  * $SOBE->init();
  *
  * AFTER INIT THE INTERNAL ARRAY ->include_once MAY HOLD FILENAMES TO INCLUDE
- * foreach($SOBE->include_once as $INC_FILE)	include_once($INC_FILE);
+ * foreach($SOBE->include_once as $INC_FILE) {
+ * 	include_once($INC_FILE);
+ * }
  * Note: This "include_once" is deprecated since TYPO3 6.2: use auto-loading instead!
  *
  * THEN WE WILL CHECK IF THERE IS A 'SUBMODULE' REGISTERED TO BE INITIALIZED AS WELL:
@@ -75,7 +81,7 @@ class BaseScriptClass {
 	 * Loaded with the global array $MCONF which holds some module configuration from the conf.php file of backend modules.
 	 *
 	 * @see init()
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $MCONF = array();
 
@@ -83,7 +89,7 @@ class BaseScriptClass {
 	 * The integer value of the GET/POST var, 'id'. Used for submodules to the 'Web' module (page id)
 	 *
 	 * @see init()
-	 * @todo Define visibility
+	 * @var int
 	 */
 	public $id;
 
@@ -91,7 +97,7 @@ class BaseScriptClass {
 	 * The value of GET/POST var, 'CMD'
 	 *
 	 * @see init()
-	 * @todo Define visibility
+	 * @var mixed
 	 */
 	public $CMD;
 
@@ -99,7 +105,7 @@ class BaseScriptClass {
 	 * A WHERE clause for selection records from the pages table based on read-permissions of the current backend user.
 	 *
 	 * @see init()
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $perms_clause;
 
@@ -107,7 +113,7 @@ class BaseScriptClass {
 	 * The module menu items array. Each key represents a key for which values can range between the items in the array of that key.
 	 *
 	 * @see init()
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $MOD_MENU = array(
 		'function' => array()
@@ -117,7 +123,7 @@ class BaseScriptClass {
 	 * Current settings for the keys of the MOD_MENU array
 	 *
 	 * @see $MOD_MENU
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $MOD_SETTINGS = array();
 
@@ -125,7 +131,7 @@ class BaseScriptClass {
 	 * Module TSconfig based on PAGE TSconfig / USER TSconfig
 	 *
 	 * @see menuConfig()
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $modTSconfig;
 
@@ -134,7 +140,7 @@ class BaseScriptClass {
 	 * Can be set from extension classes of this class before the init() function is called.
 	 *
 	 * @see menuConfig(), \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData()
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $modMenu_type = '';
 
@@ -143,7 +149,7 @@ class BaseScriptClass {
 	 * Can be set from extension classes of this class before the init() function is called.
 	 *
 	 * @see menuConfig(), \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData()
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $modMenu_dontValidateList = '';
 
@@ -152,7 +158,7 @@ class BaseScriptClass {
 	 * Can be set from extension classes of this class before the init() function is called.
 	 *
 	 * @see menuConfig(), \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData()
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $modMenu_setDefaultList = '';
 
@@ -160,7 +166,7 @@ class BaseScriptClass {
 	 * Contains module configuration parts from TBE_MODULES_EXT if found
 	 *
 	 * @see handleExternalFunctionValue()
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $extClassConf;
 
@@ -169,14 +175,13 @@ class BaseScriptClass {
 	 *
 	 * @see handleExternalFunctionValue()
 	 * @deprecated since 6.2. Instead of this include_once array, extensions should use auto-loading
-	 * @todo Define visibility
 	 */
 	public $include_once = array();
 
 	/**
 	 * Generally used for accumulating the output content of backend modules
 	 *
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $content = '';
 
@@ -189,7 +194,7 @@ class BaseScriptClass {
 	 * May contain an instance of a 'Function menu module' which connects to this backend module.
 	 *
 	 * @see checkExtObj()
-	 * @todo Define visibility
+	 * @var object
 	 */
 	public $extObj;
 
@@ -198,7 +203,6 @@ class BaseScriptClass {
 	 *
 	 * @return void
 	 * @see menuConfig()
-	 * @todo Define visibility
 	 */
 	public function init() {
 		// Name might be set from outside
@@ -219,7 +223,6 @@ class BaseScriptClass {
 	 *
 	 * @return void
 	 * @see init(), $MOD_MENU, $MOD_SETTINGS, \TYPO3\CMS\Backend\Utility\BackendUtility::getModuleData(), mergeExternalItems()
-	 * @todo Define visibility
 	 */
 	public function menuConfig() {
 		// Page/be_user TSconfig settings and blinding of menu-items
@@ -238,7 +241,6 @@ class BaseScriptClass {
 	 * @return array Modified array part.
 	 * @access private
 	 * @see \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::insertModuleFunction(), menuConfig()
-	 * @todo Define visibility
 	 */
 	public function mergeExternalItems($modName, $menuKey, $menuArr) {
 		$mergeArray = $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey];
@@ -261,7 +263,6 @@ class BaseScriptClass {
 	 * @return void
 	 * @see getExternalItemConfig(), $include_once, init()
 	 * @deprecated since 6.2. Instead of this include_once array, extensions should use auto-loading
-	 * @todo Define visibility
 	 */
 	public function handleExternalFunctionValue($MM_key = 'function', $MS_value = NULL) {
 		if ($MS_value === NULL) {
@@ -282,7 +283,6 @@ class BaseScriptClass {
 	 * @param string $value Optionally the value-key to fetch from the array that would otherwise have been returned if this value was not set. Look source...
 	 * @return mixed The value from the TBE_MODULES_EXT array.
 	 * @see handleExternalFunctionValue()
-	 * @todo Define visibility
 	 */
 	public function getExternalItemConfig($modName, $menuKey, $value = '') {
 		return (string)$value !== '' ? $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey][$value] : $GLOBALS['TBE_MODULES_EXT'][$modName]['MOD_MENU'][$menuKey];
@@ -297,7 +297,6 @@ class BaseScriptClass {
 	 *
 	 * @return void
 	 * @see handleExternalFunctionValue(), \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::insertModuleFunction(), $extObj
-	 * @todo Define visibility
 	 */
 	public function checkExtObj() {
 		if (is_array($this->extClassConf) && $this->extClassConf['name']) {
@@ -312,7 +311,6 @@ class BaseScriptClass {
 	 * Calls the checkExtObj function in sub module if present.
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function checkSubExtObj() {
 		if (is_object($this->extObj)) {
@@ -327,7 +325,6 @@ class BaseScriptClass {
 	 * $this->pObj->doc->JScode = $this->pObj->doc->wrapScriptTags(' ...
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function extObjHeader() {
 		if (is_callable(array($this->extObj, 'head'))) {
@@ -339,7 +336,6 @@ class BaseScriptClass {
 	 * Calls the 'main' function inside the "Function menu module" if present
 	 *
 	 * @return void
-	 * @todo Define visibility
 	 */
 	public function extObjContent() {
 		$this->extObj->pObj = $this;

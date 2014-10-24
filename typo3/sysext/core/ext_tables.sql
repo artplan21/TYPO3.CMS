@@ -245,6 +245,7 @@ CREATE TABLE sys_filemounts (
   hidden tinyint(3) unsigned DEFAULT '0' NOT NULL,
   deleted tinyint(1) unsigned DEFAULT '0' NOT NULL,
   sorting int(11) unsigned DEFAULT '0' NOT NULL,
+  read_only tinyint(1) unsigned DEFAULT '0' NOT NULL,
   PRIMARY KEY (uid),
   KEY parent (pid)
 );
@@ -302,7 +303,7 @@ CREATE TABLE sys_file (
 	mime_type varchar(255) DEFAULT '' NOT NULL,
 	name tinytext,
 	sha1 tinytext,
-	size int(11) DEFAULT '0' NOT NULL,
+	size bigint(20) unsigned DEFAULT '0' NOT NULL,
 	creation_date int(11) DEFAULT '0' NOT NULL,
 	modification_date int(11) DEFAULT '0' NOT NULL,
 
@@ -426,7 +427,7 @@ CREATE TABLE sys_file_reference (
 	title tinytext,
 	description text,
 	alternative tinytext,
-	link tinytext,
+	link varchar(1024) DEFAULT '' NOT NULL,
 	downloadname tinytext,
 
 	PRIMARY KEY (uid),
@@ -530,7 +531,7 @@ CREATE TABLE sys_collection_entries (
 	uid int(11) NOT NULL auto_increment,
 	uid_local int(11) DEFAULT '0' NOT NULL,
 	uid_foreign int(11) DEFAULT '0' NOT NULL,
-	tablenames varchar(30) DEFAULT '' NOT NULL,
+	tablenames varchar(64) DEFAULT '' NOT NULL,
 	sorting int(11) DEFAULT '0' NOT NULL,
 
 	KEY uid_local (uid_local),

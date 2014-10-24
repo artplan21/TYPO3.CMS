@@ -28,7 +28,7 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	// Configuration of supported browsers
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $conf_supported_browser = array(
 		'msie' => array(
@@ -77,7 +77,7 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	// Always hide these toolbar buttons (TYPO3 button name)
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $conf_toolbar_hide = array(
 		'showhelp'
@@ -85,13 +85,13 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	// The order of the toolbar: the name is the TYPO3-button name
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $defaultToolbarOrder;
 
 	// Conversion array: TYPO3 button names to htmlArea button names
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $convertToolbarForHtmlAreaArray = array(
 		'showhelp' => 'ShowHelp',
@@ -101,12 +101,12 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	);
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $pluginButton = array();
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $pluginLabel = array();
 
@@ -129,19 +129,19 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	// Identifies the RTE as being the one from the "rtehtmlarea" extension if any external code needs to know
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $ID = 'rtehtmlarea';
 
 	// If set, the content goes into a regular TEXT area field - for developing testing of transformations.
 	/**
-	 * @todo Define visibility
+	 * @var bool
 	 */
 	public $debugMode = FALSE;
 
 	// For the editor
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $client;
 
@@ -149,49 +149,43 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * Reference to parent object, which is an instance of the TCEforms
 	 *
 	 * @var \TYPO3\CMS\Backend\Form\FormEngine
-	 * @todo Define visibility
 	 */
 	public $TCEform;
 
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $elementId;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $elementParts;
 
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $tscPID;
 
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $typeVal;
 
 	/**
-	 * @todo Define visibility
+	 * @var int
 	 */
 	public $thePid;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $RTEsetup;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $thisConfig;
-
-	/**
-	 * @todo Define visibility
-	 */
-	public $confValues;
 
 	public $language;
 	/**
@@ -213,23 +207,23 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	public $OutputCharset = 'utf-8';
 
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $editorCSS;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $specConf;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $toolbar = array();
 
 	// Save the buttons for the toolbar
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $toolbarOrderArray = array();
 
@@ -251,7 +245,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * If there are reasons why the RTE cannot be displayed you simply enter them as text in ->errorLog
 	 *
 	 * @return 	boolean		TRUE if this RTE object offers an RTE in the current browser environment
-	 * @todo Define visibility
 	 */
 	public function isAvailable() {
 		$this->client = $this->clientInfo();
@@ -332,7 +325,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * @param string $RTErelPath Relative path for images/links in RTE; this is used when the RTE edits content from static files where the path of such media has to be transformed forth and back!
 	 * @param integer $thePidValue PID value of record (true parent page id)
 	 * @return string HTML code for RTE!
-	 * @todo Define visibility
 	 */
 	public function drawRTE($parentObject, $table, $field, $row, $PA, $specConf, $thisConfig, $RTEtypeVal, $RTErelPath, $thePidValue) {
 		global $LANG, $TYPO3_DB;
@@ -389,41 +381,41 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 			 * =======================================
 			 */
 			// Languages: interface and content
-			$this->language = $LANG->lang;
-			if ($this->language == 'default' || !$this->language) {
+			$this->language = $GLOBALS['LANG']->lang;
+			if ($this->language === 'default' || !$this->language) {
 				$this->language = 'en';
 			}
-			$this->contentTypo3Language = $this->language == 'en' ? 'default' : $this->language;
-			$this->contentISOLanguage = 'en';
 			$this->contentLanguageUid = max($row['sys_language_uid'], 0);
-			if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
-				if ($this->contentLanguageUid) {
+			if ($this->contentLanguageUid) {
+				$this->contentISOLanguage = $this->language;
+				if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
 					$tableA = 'sys_language';
 					$tableB = 'static_languages';
-					$languagesUidsList = $this->contentLanguageUid;
-					$selectFields = $tableA . '.uid,' . $tableB . '.lg_iso_2,' . $tableB . '.lg_country_iso_2,' . $tableB . '.lg_typo3';
+					$selectFields = $tableA . '.uid,' . $tableB . '.lg_iso_2,' . $tableB . '.lg_country_iso_2';
 					$tableAB = $tableA . ' LEFT JOIN ' . $tableB . ' ON ' . $tableA . '.static_lang_isocode=' . $tableB . '.uid';
-					$whereClause = $tableA . '.uid IN (' . $languagesUidsList . ') ';
+					$whereClause = $tableA . '.uid = ' . intval($this->contentLanguageUid);
 					$whereClause .= BackendUtility::BEenableFields($tableA);
 					$whereClause .= BackendUtility::deleteClause($tableA);
-					$res = $TYPO3_DB->exec_SELECTquery($selectFields, $tableAB, $whereClause);
-					while ($languageRow = $TYPO3_DB->sql_fetch_assoc($res)) {
+					$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($selectFields, $tableAB, $whereClause);
+					while ($languageRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
 						$this->contentISOLanguage = strtolower(trim($languageRow['lg_iso_2']) . (trim($languageRow['lg_country_iso_2']) ? '_' . trim($languageRow['lg_country_iso_2']) : ''));
-						$this->contentTypo3Language = trim($languageRow['lg_typo3']) ? strtolower(trim($languageRow['lg_typo3'])) : 'default';
 					}
-				} else {
-					$this->contentISOLanguage = trim($this->thisConfig['defaultContentLanguage']) ?: 'en';
-					$selectFields = 'lg_iso_2, lg_typo3';
-					$tableAB = 'static_languages';
-					$whereClause = 'lg_iso_2 = ' . $TYPO3_DB->fullQuoteStr(strtoupper($this->contentISOLanguage), $tableAB);
-					$res = $TYPO3_DB->exec_SELECTquery($selectFields, $tableAB, $whereClause);
-					while ($languageRow = $TYPO3_DB->sql_fetch_assoc($res)) {
-						$this->contentTypo3Language = trim($languageRow['lg_typo3']) ? strtolower(trim($languageRow['lg_typo3'])) : 'default';
-					}
+				}
+			} else {
+				$this->contentISOLanguage = trim($this->thisConfig['defaultContentLanguage']) ?: 'en';
+				$languageCodeParts = explode('_', $this->contentISOLanguage);
+				$this->contentISOLanguage = strtolower($languageCodeParts[0]) . ($languageCodeParts[1] ? '_' . strtoupper($languageCodeParts[1]) : '');
+				// Find the configured language in the list of localization locales
+				/** @var $locales \TYPO3\CMS\Core\Localization\Locales */
+				$locales = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Localization\\Locales');
+				// If not found, default to 'en'
+				if (!in_array($this->contentISOLanguage, $locales->getLocales())) {
+					$this->contentISOLanguage = 'en';
 				}
 			}
 			// Create content laguage service
 			$this->contentLanguageService = GeneralUtility::makeInstance('TYPO3\\CMS\\Lang\\LanguageService');
+			$this->contentTypo3Language = $this->contentISOLanguage === 'en' ? 'default' : $this->contentISOLanguage;
 			$this->contentLanguageService->init($this->contentTypo3Language);
 			/* =======================================
 			 * TOOLBAR CONFIGURATION
@@ -510,31 +502,46 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	}
 
 	/**
-	 * Add link to content style sheet to document header
+	 * Add links to content style sheets to document header
 	 *
 	 * @return 	void
 	 */
 	protected function addPageStyle() {
-		$this->addStyleSheet('rtehtmlarea-page-style', $this->getContentCssFileName(), 'htmlArea RTE Content CSS', 'alternate stylesheet');
+		$contentCssFileNames = $this->getContentCssFileNames();
+		foreach ($contentCssFileNames as $contentCssKey => $contentCssFile) {
+			$this->addStyleSheet($contentCssKey, $contentCssFile, 'htmlArea RTE Content CSS', 'alternate stylesheet');
+		}
 	}
 
 	/**
-	 * Get the name of the contentCSS file to use
+	 * Get the name of the contentCSS files to use
 	 *
-	 * @return 	the full file name of the content css file to use
+	 * @return array An array of full file name of the content css files to use
 	 */
-	protected function getContentCssFileName() {
-		// Get stylesheet file name from Page TSConfig if any
-		$fileName = trim($this->thisConfig['contentCSS']);
-		if ($fileName) {
-			$fileName = $this->getFullFileName($fileName);
+	protected function getContentCssFileNames() {
+		$contentCss = is_array($this->thisConfig['contentCSS.']) ? $this->thisConfig['contentCSS.'] : array();
+
+		if (isset($this->thisConfig['contentCSS'])) {
+			$contentCss[] = trim($this->thisConfig['contentCSS']);
 		}
-		$absolutePath = $fileName ? GeneralUtility::resolveBackPath(PATH_site . ($this->is_FE() || $this->isFrontendEditActive() ? '' : TYPO3_mainDir) . $fileName) : '';
-		// Fallback to default content css file if configured file does not exists or is of zero size
-		if (!$fileName || !file_exists($absolutePath) || !filesize($absolutePath)) {
-			$fileName = $this->getFullFileName('EXT:' . $this->ID . '/res/contentcss/default.css');
+
+		$contentCssFiles = array();
+
+		if (count($contentCss)) {
+			foreach ($contentCss as $contentCssKey => $contentCssfile) {
+				$fileName = $this->getFullFileName($contentCssfile);
+				$absolutePath = $fileName ? GeneralUtility::resolveBackPath(PATH_site . ($this->is_FE() || $this->isFrontendEditActive() ? '' : TYPO3_mainDir) . $fileName) : '';
+				if (file_exists($absolutePath) && filesize($absolutePath)) {
+					$contentCssFiles[$contentCssKey] = $fileName;
+				}
+			}
 		}
-		return $fileName;
+
+		if (count($contentCssFiles) === 0) {
+			$contentCssFiles['default'] = $this->getFullFileName('EXT:' . $this->ID . '/res/contentcss/default.css');
+		}
+
+		return array_unique($contentCssFiles);
 	}
 
 	/**
@@ -603,8 +610,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	/**
 	 * Add registered plugins to the array of enabled plugins
-	 *
-	 * @todo Define visibility
 	 */
 	public function enableRegisteredPlugins() {
 		global $TYPO3_CONF_VARS;
@@ -646,8 +651,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	/**
 	 * Set the toolbar config (only in this PHP-Object, not in JS):
-	 *
-	 * @todo Define visibility
 	 */
 	public function setToolbar() {
 		if ($this->client['browser'] == 'msie' || $this->client['browser'] == 'opera') {
@@ -736,8 +739,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	/**
 	 * Disable some plugins
-	 *
-	 * @todo Define visibility
 	 */
 	public function setPlugins() {
 		// Disabling a plugin that adds buttons if none of its buttons is in the toolbar
@@ -792,7 +793,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	string	buttonname (typo3-name)
 	 * @return 	string	buttonname (htmlarea-name)
-	 * @todo Define visibility
 	 */
 	public function convertToolbarForHTMLArea($button) {
 		return $this->convertToolbarForHtmlAreaArray[$button];
@@ -805,11 +805,44 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * @return void
 	 */
 	protected function addRteJsFiles($RTEcounter) {
-		$this->pageRenderer->addJsFile($this->getFullFileName('EXT:' . $this->ID . '/htmlarea/htmlarea.js'));
+		// Component files. Order is important.
+		$components = array(
+			'Util/Wrap.open',
+			'HTMLArea',
+			'Configuration/HTMLArea.Config',
+			'Extjs/ux/Ext.ux.HTMLAreaButton',
+			'Extjs/ux/Ext.ux.Toolbar.HTMLAreaToolbarText',
+			'Extjs/ux/Ext.ux.form.HTMLAreaCombo',
+			'Editor/HTMLArea.Toolbar',
+			'Editor/HTMLArea.Iframe',
+			'Editor/HTMLArea.StatusBar',
+			'Editor/HTMLArea.Framework',
+			'Editor/HTMLArea.Editor',
+			'Ajax/HTMLArea.Ajax',
+			'Util/HTMLArea.util.TYPO3',
+			'Util/HTMLArea.util',
+			'DOM/HTMLArea.DOM',
+			'DOM/HTMLArea.DOM.Walker',
+			'DOM/HTMLArea.DOM.Selection',
+			'DOM/HTMLArea.DOM.BookMark',
+			'DOM/HTMLArea.DOM.Node',
+			'CSS/HTMLArea.CSS.Parser',
+			'Util/HTMLArea.util.Tips',
+			'Util/HTMLArea.util.Color',
+			'Extjs/Ext.ColorPalette',
+			'Extjs/ux/Ext.ux.menu.HTMLAreaColorMenu',
+			'Extjs/ux/Ext.ux.form.ColorPaletteField',
+			'LoremIpsum',
+			'plugins/Plugin'
+		);
+		foreach ($components as $component) {
+			$this->pageRenderer->addJsFile($this->getFullFileName('EXT:' . $this->ID . '/htmlarea/' . $component . '.js'));
+		}
 		foreach ($this->pluginEnabledCumulativeArray[$RTEcounter] as $pluginId) {
 			$extensionKey = is_object($this->registeredPlugins[$pluginId]) ? $this->registeredPlugins[$pluginId]->getExtensionKey() : $this->ID;
 			$this->pageRenderer->addJsFile($this->getFullFileName('EXT:' . $extensionKey . '/htmlarea/plugins/' . $pluginId . '/' . strtolower(preg_replace('/([a-z])([A-Z])([a-z])/', '$1-$2$3', $pluginId)) . '.js'));
 		}
+		$this->pageRenderer->addJsFile($this->getFullFileName('EXT:' . $this->ID . '/htmlarea/Util/Wrap.close.js'));
 	}
 
 	/**
@@ -856,7 +889,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * @param 	string		$field: The field of that record that includes this RTE (optional).
 	 * @param	string		$textAreaId ID of the textarea, to have a unigue number for the editor
 	 * @return 	string		the Javascript code for configuring the RTE
-	 * @todo Define visibility
 	 */
 	public function registerRTEinJS($RTEcounter, $table = '', $uid = '', $field = '', $textAreaId = '') {
 		$configureRTEInJavascriptString = '
@@ -953,9 +985,14 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 				RTEarea[editornumber].customTags= ' . json_encode($customTags) . ';';
 			}
 		}
-		// Setting the pageStyle
+		// Setting array of content css files if specified in the RTE config
+		$versionNumberedFileNames = array();
+		$contentCssFileNames = $this->getContentCssFileNames();
+		foreach ($contentCssFileNames as $contentCssFileName) {
+			$versionNumberedFileNames[] = GeneralUtility::createVersionNumberedFilename($contentCssFileName);
+		}
 		$configureRTEInJavascriptString .= '
-			RTEarea[editornumber].pageStyle = "' . GeneralUtility::createVersionNumberedFilename($this->getContentCssFileName()) . '";';
+			RTEarea[editornumber].pageStyle = ["' . implode('","', $versionNumberedFileNames) . '"];';
 		// Process classes configuration
 		$classesConfigurationRequired = FALSE;
 		foreach ($this->registeredPlugins as $pluginId => $plugin) {
@@ -988,7 +1025,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	string		$pluginId: The identification string of the plugin
 	 * @return 	boolean		TRUE if the plugin can be loaded
-	 * @todo Define visibility
 	 */
 	public function isPluginEnabled($pluginId) {
 		return in_array($pluginId, $this->pluginEnabledArray);
@@ -999,7 +1035,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @return string		Style sheet
 	 * @deprecated since TYPO3 6.0, will be removed in TYPO3 6.2
-	 * @todo Define visibility
 	 */
 	public function buildStyleSheet() {
 		$stylesheet = '/* mainStyleOverride and inlineStyle properties ignored. */';
@@ -1011,7 +1046,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	integer		$RTEcounter: The index number of the current RTE editing area within the form.
 	 * @return 	string		Javascript configuration of classes
-	 * @todo Define visibility
 	 */
 	public function buildJSClassesConfig($RTEcounter) {
 		// Include JS arrays of configured classes
@@ -1024,7 +1058,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * Return JS arrays of classes configuration
 	 *
 	 * @return string	JS classes arrays
-	 * @todo Define visibility
 	 */
 	public function buildJSClassesArray() {
 		if ($this->is_FE()) {
@@ -1075,7 +1108,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	array		$conf: Page TSConfig configuration array
 	 * @return 	string		nested JS array definition
-	 * @todo Define visibility
 	 */
 	public function buildNestedJSArray($conf) {
 		$convertedConf = GeneralUtility::removeDotsFromTS($conf);
@@ -1086,7 +1118,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * Return a Javascript localization array for htmlArea RTE
 	 *
 	 * @return 	string		Javascript localization array
-	 * @todo Define visibility
 	 */
 	public function buildJSMainLangArray() {
 		$JSLanguageArray = 'HTMLArea.I18N = new Object();' . LF;
@@ -1149,7 +1180,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	integer		$RTEcounter: The index number of the current RTE editing area within the form.
 	 * @return 	string		filename
-	 * @todo Define visibility
 	 */
 	public function buildJSMainLangFile($RTEcounter) {
 		$contents = $this->buildJSMainLangArray() . LF;
@@ -1164,7 +1194,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	string		$plugin: identification string of the plugin
 	 * @return 	string		Javascript localization array
-	 * @todo Define visibility
 	 */
 	public function buildJSLangArray($plugin) {
 		$extensionKey = is_object($this->registeredPlugins[$plugin]) ? $this->registeredPlugins[$plugin]->getExtensionKey() : $this->ID;
@@ -1275,7 +1304,10 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * JavaScript char code
+	 *
+	 * @param string $str
+	 * @return string
 	 */
 	public function feJScharCode($str) {
 		// Convert string to UTF-8:
@@ -1311,7 +1343,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * @param 	string		$textareaId: the id of the textarea
 	 * @param 	string		$textareaName: the name of the textarea
 	 * @return 	string		Javascript code
-	 * @todo Define visibility
 	 */
 	public function setSaveRTE($RTEcounter, $formName, $textareaId, $textareaName) {
 		return 'if (RTEarea["' . $textareaId . '"]) { document.' . $formName . '["' . $textareaName . '"].value = RTEarea["' . $textareaId . '"].editor.getHTML(); } else { OK = 0; };';
@@ -1325,7 +1356,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * @param 	string		$formName: the name of the form
 	 * @param 	string		$textareaId: the id of the textarea
 	 * @return 	string		Javascript code
-	 * @todo Define visibility
 	 */
 	public function setDeleteRTE($RTEcounter, $formName, $textareaId) {
 		return 'if (RTEarea["' . $textareaId . '"]) { RTEarea["' . $textareaId . '"].deleted = true;}';
@@ -1335,7 +1365,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 * Return TRUE if we are in the FE, but not in the FE editing feature of BE.
 	 *
 	 * @return boolean
-	 * @todo Define visibility
 	 */
 	public function is_FE() {
 		return is_object($GLOBALS['TSFE']) && !$this->isFrontendEditActive() && TYPO3_MODE == 'FE';
@@ -1355,7 +1384,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	 *
 	 * @param 	string		$userAgent: The useragent string, \TYPO3\CMS\Core\Utility\GeneralUtility::getIndpEnv('HTTP_USER_AGENT')
 	 * @return 	array		Contains keys "useragent", "browser", "version", "system
-	 * @todo Define visibility
 	 */
 	public function clientInfo($userAgent = '') {
 		if (!$userAgent) {
@@ -1403,7 +1431,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	/**
 	 * @return 	[type]		...
 	 * @desc
-	 * @todo Define visibility
 	 */
 	public function RTEtsConfigParams() {
 		if ($this->is_FE()) {
@@ -1424,7 +1451,11 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 	}
 
 	/**
-	 * @todo Define visibility
+	 * Filter style element
+	 *
+	 * @param string $elValue
+	 * @param string $matchList
+	 * @return string
 	 */
 	public function filterStyleEl($elValue, $matchList) {
 		$matchParts = GeneralUtility::trimExplode(',', $matchList, TRUE);
@@ -1450,7 +1481,6 @@ class RteHtmlAreaBase extends \TYPO3\CMS\Backend\Rte\AbstractRte {
 
 	// Hook on lorem_ipsum extension to insert text into the RTE in wysiwyg mode
 	/**
-	 * @todo Define visibility
 	 * @deprecated since 6.2 - will be removed two versions later without replacement
 	 */
 	public function loremIpsumInsert($params) {

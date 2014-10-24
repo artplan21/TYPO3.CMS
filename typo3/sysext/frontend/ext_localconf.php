@@ -14,3 +14,22 @@ if ($GLOBALS['TYPO3_CONF_VARS']['FE']['redirectToUtf8EncodedRequestUriIfNeeded']
 	// Register hook to redirect to unicode-nomalized request-uri if needed
 	$GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['tslib/class.tslib_fe.php']['checkAlternativeIdMethods-PostProc'][] = 'TYPO3\\CMS\\Frontend\\Hooks\\UnicodeNormalizationHooks->hook_redirectRequestUriIfNeeded';
 }
+
+\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::addTypoScript(
+	'frontend',
+	'setup',
+	'config.extTarget = _top'
+	. LF . 'config.uniqueLinkVars = 1'
+);
+
+
+if (TYPO3_MODE === 'FE') {
+
+	// Register eID provider for showpic
+	$GLOBALS['TYPO3_CONF_VARS']['FE']['eID_include']['tx_cms_showpic'] = 'EXT:frontend/Resources/PHP/Eid/ShowPic.php';
+	// Register eID provider for ExtDirect for the frontend
+	$GLOBALS['TYPO3_CONF_VARS']['FE']['eID_include']['ExtDirect'] = 'EXT:frontend/Resources/PHP/Eid/ExtDirect.php';
+
+	// Register the core media wizard provider
+	\TYPO3\CMS\Frontend\MediaWizard\MediaWizardProviderManager::registerMediaWizardProvider('TYPO3\\CMS\\Frontend\\MediaWizard\\MediaWizardProvider');
+}

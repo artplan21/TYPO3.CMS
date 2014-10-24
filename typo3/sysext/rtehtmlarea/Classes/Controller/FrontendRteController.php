@@ -29,56 +29,51 @@ class FrontendRteController extends \TYPO3\CMS\Rtehtmlarea\RteHtmlAreaBase {
 	// Alternative style for RTE <div> tag.
 	// For the editor
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $elementId;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $elementParts;
 
 	/**
-	 * @todo Define visibility
+	 * @var int
 	 */
 	public $tscPID;
 
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $typeVal;
 
 	/**
-	 * @todo Define visibility
+	 * @var int
 	 */
 	public $thePid;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $RTEsetup = array();
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $thisConfig = array();
-
-	/**
-	 * @todo Define visibility
-	 */
-	public $confValues;
 
 	public $language;
 
 	public $OutputCharset;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $specConf;
 
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $LOCAL_LANG;
 
@@ -101,7 +96,6 @@ class FrontendRteController extends \TYPO3\CMS\Rtehtmlarea\RteHtmlAreaBase {
 	 * @param 	string		Relative path for images/links in RTE; this is used when the RTE edits content from static files where the path of such media has to be transformed forth and back!
 	 * @param 	integer		PID value of record (true parent page id)
 	 * @return 	string		HTML code for RTE!
-	 * @todo Define visibility
 	 */
 	public function drawRTE(&$parentObject, $table, $field, $row, $PA, $specConf, $thisConfig, $RTEtypeVal, $RTErelPath, $thePidValue) {
 		global $TSFE, $TYPO3_CONF_VARS, $TYPO3_DB;
@@ -153,44 +147,28 @@ class FrontendRteController extends \TYPO3\CMS\Rtehtmlarea\RteHtmlAreaBase {
 		 * =======================================
 		 */
 		// Language
-		$TSFE->initLLvars();
-		$this->language = $TSFE->lang;
+		$GLOBALS['TSFE']->initLLvars();
+		$this->language = $GLOBALS['TSFE']->lang;
 		$this->LOCAL_LANG = \TYPO3\CMS\Core\Utility\GeneralUtility::readLLfile('EXT:' . $this->ID . '/locallang.xml', $this->language);
-		if ($this->language == 'default' || !$this->language) {
+		if ($this->language === 'default' || !$this->language) {
 			$this->language = 'en';
 		}
+		$this->contentISOLanguage = $GLOBALS['TSFE']->sys_language_isocode ?: 'en';
 		$this->contentLanguageUid = max($row['sys_language_uid'], 0);
-		if (\TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
-			if ($this->contentLanguageUid) {
-				$tableA = 'sys_language';
-				$tableB = 'static_languages';
-				$languagesUidsList = $this->contentLanguageUid;
-				$selectFields = $tableA . '.uid,' . $tableB . '.lg_iso_2,' . $tableB . '.lg_country_iso_2,' . $tableB . '.lg_typo3';
-				$tableAB = $tableA . ' LEFT JOIN ' . $tableB . ' ON ' . $tableA . '.static_lang_isocode=' . $tableB . '.uid';
-				$whereClause = $tableA . '.uid IN (' . $languagesUidsList . ') ';
-				$whereClause .= \TYPO3\CMS\Backend\Utility\BackendUtility::BEenableFields($tableA);
-				$whereClause .= \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause($tableA);
-				$res = $TYPO3_DB->exec_SELECTquery($selectFields, $tableAB, $whereClause);
-				while ($languageRow = $TYPO3_DB->sql_fetch_assoc($res)) {
-					$this->contentISOLanguage = strtolower(trim($languageRow['lg_iso_2']) . (trim($languageRow['lg_country_iso_2']) ? '_' . trim($languageRow['lg_country_iso_2']) : ''));
-					$this->contentTypo3Language = strtolower(trim($languageRow['lg_typo3']));
-				}
-			} else {
-				$this->contentISOLanguage = $GLOBALS['TSFE']->sys_language_isocode ?: 'en';
-				$selectFields = 'lg_iso_2, lg_typo3';
-				$tableAB = 'static_languages';
-				$whereClause = 'lg_iso_2 = ' . $TYPO3_DB->fullQuoteStr(strtoupper($this->contentISOLanguage), $tableAB);
-				$res = $TYPO3_DB->exec_SELECTquery($selectFields, $tableAB, $whereClause);
-				while ($languageRow = $TYPO3_DB->sql_fetch_assoc($res)) {
-					$this->contentTypo3Language = strtolower(trim($languageRow['lg_typo3']));
-				}
+		if ($this->contentLanguageUid && \TYPO3\CMS\Core\Utility\ExtensionManagementUtility::isLoaded('static_info_tables')) {
+			$tableA = 'sys_language';
+			$tableB = 'static_languages';
+			$selectFields = $tableA . '.uid,' . $tableB . '.lg_iso_2,' . $tableB . '.lg_country_iso_2';
+			$tableAB = $tableA . ' LEFT JOIN ' . $tableB . ' ON ' . $tableA . '.static_lang_isocode=' . $tableB . '.uid';
+			$whereClause = $tableA . '.uid = ' . intval($this->contentLanguageUid);
+			$whereClause .= \TYPO3\CMS\Backend\Utility\BackendUtility::BEenableFields($tableA);
+			$whereClause .= \TYPO3\CMS\Backend\Utility\BackendUtility::deleteClause($tableA);
+			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($selectFields, $tableAB, $whereClause);
+			while ($languageRow = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
+				$this->contentISOLanguage = strtolower(trim($languageRow['lg_iso_2']) . (trim($languageRow['lg_country_iso_2']) ? '_' . trim($languageRow['lg_country_iso_2']) : ''));
 			}
 		}
-		$this->contentISOLanguage = $this->contentISOLanguage ?: ($GLOBALS['TSFE']->sys_language_isocode ?: 'en');
-		$this->contentTypo3Language = $this->contentTypo3Language ?: $GLOBALS['TSFE']->lang;
-		if ($this->contentTypo3Language == 'default') {
-			$this->contentTypo3Language = 'en';
-		}
+		$this->contentTypo3Language = $this->contentISOLanguage;
 		// Character set
 		$this->charset = $TSFE->renderCharset;
 		$this->OutputCharset = $TSFE->metaCharset ?: $TSFE->renderCharset;
@@ -294,7 +272,6 @@ class FrontendRteController extends \TYPO3\CMS\Rtehtmlarea\RteHtmlAreaBase {
 	 * @param 	string		$form: the name of the form
 	 * @param 	string		$textareaId: the id of the textarea
 	 * @return 	string		the JS-Code
-	 * @todo Define visibility
 	 */
 	public function setSaveRTE($RTEcounter, $form, $textareaId) {
 		return '

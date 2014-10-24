@@ -60,31 +60,31 @@ class CharsetConverter {
 
 	// ASCII Value for chars with no equivalent.
 	/**
-	 * @todo Define visibility
+	 * @var int
 	 */
 	public $noCharByteVal = 63;
 
 	// This is the array where parsed conversion tables are stored (cached)
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $parsedCharsets = array();
 
 	// An array where case folding data will be stored (cached)
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $caseFolding = array();
 
 	// An array where charset-to-ASCII mappings are stored (cached)
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $toASCII = array();
 
 	// This tells the converter which charsets has two bytes per char:
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $twoByteSets = array(
 		'ucs-2' => 1
@@ -92,7 +92,7 @@ class CharsetConverter {
 
 	// This tells the converter which charsets has four bytes per char:
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $fourByteSets = array(
 		'ucs-4' => 1,
@@ -102,7 +102,7 @@ class CharsetConverter {
 
 	// This tells the converter which charsets use a scheme like the Extended Unix Code:
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $eucBasedSets = array(
 		'gb2312' => 1,
@@ -117,7 +117,7 @@ class CharsetConverter {
 	// See	http://developer.apple.com/documentation/macos8/TextIntlSvcs/TextEncodingConversionManager/TEC1.5/TEC.b0.html
 	// http://czyborra.com/charsets/iso8859.html
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $synonyms = array(
 		'us' => 'ascii',
@@ -207,7 +207,7 @@ class CharsetConverter {
 
 	// Mapping of iso-639-1 language codes to script names
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $lang_to_script = array(
 		// iso-639-1 language codes, see http://www.loc.gov/standards/iso639-2/php/code_list.php
@@ -464,7 +464,7 @@ class CharsetConverter {
 
 	// Mapping of language (family) names to charsets on Unix
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $script_to_charset_unix = array(
 		'west_european' => 'iso-8859-1',
@@ -492,7 +492,7 @@ class CharsetConverter {
 
 	// Mapping of language (family) names to charsets on Windows
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $script_to_charset_windows = array(
 		'east_european' => 'windows-1250',
@@ -518,7 +518,7 @@ class CharsetConverter {
 
 	// Mapping of locale names to charsets
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $locale_to_charset = array(
 		'japanese.euc' => 'euc-jp',
@@ -533,7 +533,7 @@ class CharsetConverter {
 	// TYPO3 specific: Array with the system charsets used for each system language in TYPO3:
 	// Empty values means "iso-8859-1"
 	/**
-	 * @todo Define visibility
+	 * @var array
 	 */
 	public $charSetArray = array(
 		'af' => '',
@@ -616,7 +616,6 @@ class CharsetConverter {
 	 *
 	 * @param string $charset Input charset
 	 * @return string Normalized charset
-	 * @todo Define visibility
 	 */
 	public function parse_charset($charset) {
 		$charset = trim(strtolower($charset));
@@ -636,7 +635,6 @@ class CharsetConverter {
 	 *
 	 * @param string $locale Locale string
 	 * @return string Charset resolved for locale string
-	 * @todo Define visibility
 	 */
 	public function get_locale_charset($locale) {
 		$locale = strtolower($locale);
@@ -682,7 +680,6 @@ class CharsetConverter {
 	 * @param boolean $useEntityForNoChar If set, then characters that are not available in the destination character set will be encoded as numeric entities
 	 * @return string Converted string
 	 * @see convArray()
-	 * @todo Define visibility
 	 */
 	public function conv($str, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = NULL) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN
@@ -739,7 +736,6 @@ class CharsetConverter {
 	 * @param boolean $useEntityForNoChar If set, then characters that are not available in the destination character set will be encoded as numeric entities
 	 * @return void
 	 * @see conv()
-	 * @todo Define visibility
 	 */
 	public function convArray(&$array, $fromCS, $toCS, $useEntityForNoChar = 0, $unicodeNormalization = NULL) {
 		// TODO Feature #57695: Figure out if we need/want unicode-normalization as well … OPEN too expensive …
@@ -758,7 +754,6 @@ class CharsetConverter {
 	 * @param string $str String in local charset to convert to UTF-8
 	 * @param string $charset Charset, lowercase. Must be found in csconvtbl/ folder.
 	 * @return string Output string, converted to UTF-8
-	 * @todo Define visibility
 	 */
 	public function utf8_encode($str, $charset) {
 		if ($charset === 'utf-8') {
@@ -818,7 +813,6 @@ class CharsetConverter {
 	 * @param string $charset Charset, lowercase. Must be found in csconvtbl/ folder.
 	 * @param boolean $useEntityForNoChar If set, then characters that are not available in the destination character set will be encoded as numeric entities
 	 * @return string Output string, converted to local charset
-	 * @todo Define visibility
 	 */
 	public function utf8_decode($str, $charset, $useEntityForNoChar = 0) {
 		if ($charset === 'utf-8') {
@@ -885,7 +879,6 @@ class CharsetConverter {
 	 *
 	 * @param string $str Input string
 	 * @return string Output string
-	 * @todo Define visibility
 	 */
 	public function utf8_to_entities($str) {
 		$strLen = strlen($str);
@@ -931,7 +924,6 @@ class CharsetConverter {
 	 * @param string $str Input string, UTF-8
 	 * @param boolean $alsoStdHtmlEnt If set, then all string-HTML entities (like &amp; or &pound; will be converted as well)
 	 * @return string Output string
-	 * @todo Define visibility
 	 */
 	public function entities_to_utf8($str, $alsoStdHtmlEnt = FALSE) {
 		if ($alsoStdHtmlEnt) {
@@ -973,7 +965,6 @@ class CharsetConverter {
 	 * @param boolean $convEntities If set, then all HTML entities (like &amp; or &pound; or &#123; or &#x3f5d;) will be detected as characters.
 	 * @param boolean $retChar If set, then instead of integer numbers the real UTF-8 char is returned.
 	 * @return array Output array with the char numbers
-	 * @todo Define visibility
 	 */
 	public function utf8_to_numberarray($str, $convEntities = 0, $retChar = 0) {
 		// If entities must be registered as well...:
@@ -1037,7 +1028,6 @@ class CharsetConverter {
 	 * @param integer $cbyte UNICODE integer
 	 * @return string UTF-8 multibyte character string
 	 * @see utf8CharToUnumber()
-	 * @todo Define visibility
 	 */
 	public function UnumberToChar($cbyte) {
 		$str = '';
@@ -1093,7 +1083,6 @@ class CharsetConverter {
 	 * @param boolean $hex If set, then a hex. number is returned.
 	 * @return integer UNICODE integer
 	 * @see UnumberToChar()
-	 * @todo Define visibility
 	 */
 	public function utf8CharToUnumber($str, $hex = 0) {
 		// First char
@@ -1134,7 +1123,6 @@ class CharsetConverter {
 	 * @param string The charset to be initialized. Use lowercase charset always (the charset must match exactly with a filename in csconvtbl/ folder ([charset].tbl)
 	 * @return integer Returns '1' if already loaded. Returns FALSE if charset conversion table was not found. Returns '2' if the charset conversion table was found and parsed.
 	 * @acces private
-	 * @todo Define visibility
 	 */
 	public function initCharset($charset) {
 		// Only process if the charset is not yet loaded:
@@ -1200,7 +1188,6 @@ class CharsetConverter {
 	 * @param string $mode Mode ("case", "ascii", ...)
 	 * @return integer Returns FALSE on error, a TRUE value on success: 1 table already loaded, 2, cached version, 3 table parsed (and cached).
 	 * @access private
-	 * @todo Define visibility
 	 */
 	public function initUnicodeData($mode = NULL) {
 		// Cache files
@@ -1442,7 +1429,6 @@ class CharsetConverter {
 	 * @param string $charset Charset for which to initialize case folding.
 	 * @return integer Returns FALSE on error, a TRUE value on success: 1 table already loaded, 2, cached version, 3 table parsed (and cached).
 	 * @access private
-	 * @todo Define visibility
 	 */
 	public function initCaseFolding($charset) {
 		// Only process if the case table is not yet loaded:
@@ -1504,7 +1490,6 @@ class CharsetConverter {
 	 * @param string $charset Charset for which to initialize conversion.
 	 * @return integer Returns FALSE on error, a TRUE value on success: 1 table already loaded, 2, cached version, 3 table parsed (and cached).
 	 * @access private
-	 * @todo Define visibility
 	 */
 	public function initToASCII($charset) {
 		// Only process if the case table is not yet loaded:
@@ -1554,7 +1539,6 @@ class CharsetConverter {
 	 * @param integer $len Length (in characters)
 	 * @return string The substring
 	 * @see substr(), mb_substr()
-	 * @todo Define visibility
 	 */
 	public function substr($charset, $string, $start, $len = NULL) {
 		if ($len === 0 || $string === '') {
@@ -1607,7 +1591,6 @@ class CharsetConverter {
 	 * @param string $string Character string
 	 * @return integer The number of characters
 	 * @see strlen()
-	 * @todo Define visibility
 	 */
 	public function strlen($charset, $string) {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring') {
@@ -1659,7 +1642,6 @@ class CharsetConverter {
 	 * @param string $crop Crop signifier
 	 * @return string The shortened string
 	 * @see substr(), mb_strimwidth()
-	 * @todo Define visibility
 	 */
 	public function crop($charset, $string, $len, $crop = '') {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring') {
@@ -1707,7 +1689,6 @@ class CharsetConverter {
 	 * @param integer $len The byte length
 	 * @return string The shortened string
 	 * @see mb_strcut()
-	 * @todo Define visibility
 	 */
 	public function strtrunc($charset, $string, $len) {
 		if ($len <= 0) {
@@ -1745,7 +1726,6 @@ class CharsetConverter {
 	 * @param string $case Case keyword: "toLower" means lowercase conversion, anything else is uppercase (use "toUpper" )
 	 * @return string The converted string
 	 * @see strtolower(), strtoupper()
-	 * @todo Define visibility
 	 */
 	public function conv_case($charset, $string, $case) {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring') {
@@ -1787,7 +1767,6 @@ class CharsetConverter {
 	 * @param string $charset Character set of string
 	 * @param string $string Input string to convert
 	 * @return string The converted string
-	 * @todo Define visibility
 	 */
 	public function specCharsToASCII($charset, $string) {
 		if ($charset === 'utf-8') {
@@ -1867,7 +1846,6 @@ class CharsetConverter {
 	 * @param string $mode Mode: 'case' (case folding) or 'ascii' (ASCII transliteration)
 	 * @param string $opt 'case': conversion 'toLower' or 'toUpper'
 	 * @return string The converted string
-	 * @todo Define visibility
 	 */
 	public function sb_char_mapping($str, $charset, $mode, $opt = '') {
 		switch ($mode) {
@@ -1914,7 +1892,6 @@ class CharsetConverter {
 	 * @param integer $len Length (in characters)
 	 * @return string The substring
 	 * @see substr()
-	 * @todo Define visibility
 	 */
 	public function utf8_substr($str, $start, $len = NULL) {
 		if ((string)$len === '0') {
@@ -1951,7 +1928,6 @@ class CharsetConverter {
 	 * @param string $str UTF-8 multibyte character string
 	 * @return integer The number of characters
 	 * @see strlen()
-	 * @todo Define visibility
 	 */
 	public function utf8_strlen($str) {
 		$n = 0;
@@ -1975,7 +1951,6 @@ class CharsetConverter {
 	 * @param integer $len The byte length
 	 * @return string The shortened string
 	 * @see mb_strcut()
-	 * @todo Define visibility
 	 */
 	public function utf8_strtrunc($str, $len) {
 		$i = $len - 1;
@@ -2007,7 +1982,6 @@ class CharsetConverter {
 	 * @param integer $offset Positition to start the search
 	 * @return integer The character position
 	 * @see strpos()
-	 * @todo Define visibility
 	 */
 	public function utf8_strpos($haystack, $needle, $offset = 0) {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring') {
@@ -2035,7 +2009,6 @@ class CharsetConverter {
 	 * @param string $needle UTF-8 character to search for (single character)
 	 * @return integer The character position
 	 * @see strrpos()
-	 * @todo Define visibility
 	 */
 	public function utf8_strrpos($haystack, $needle) {
 		if ($GLOBALS['TYPO3_CONF_VARS']['SYS']['t3lib_cs_utils'] == 'mbstring') {
@@ -2058,7 +2031,6 @@ class CharsetConverter {
 	 * @param string $str UTF-8 string
 	 * @param integer $pos Character position (negative values start from the end)
 	 * @return integer Byte position
-	 * @todo Define visibility
 	 */
 	public function utf8_char2byte_pos($str, $pos) {
 		// Number of characters found
@@ -2105,7 +2077,6 @@ class CharsetConverter {
 	 * @param string $str UTF-8 string
 	 * @param integer $pos Byte position
 	 * @return integer Character position
-	 * @todo Define visibility
 	 */
 	public function utf8_byte2char_pos($str, $pos) {
 		// Number of characters
@@ -2134,7 +2105,6 @@ class CharsetConverter {
 	 * @param string $mode Mode: 'case' (case folding) or 'ascii' (ASCII transliteration)
 	 * @param string $opt 'case': conversion 'toLower' or 'toUpper'
 	 * @return string The converted string
-	 * @todo Define visibility
 	 */
 	public function utf8_char_mapping($str, $mode, $opt = '') {
 		if (!$this->initUnicodeData($mode)) {
@@ -2194,7 +2164,6 @@ class CharsetConverter {
 	 * @param string $charset The charset
 	 * @return string The shortened string
 	 * @see mb_strcut()
-	 * @todo Define visibility
 	 */
 	public function euc_strtrunc($str, $len, $charset) {
 		$sjis = $charset == 'shift_jis';
@@ -2230,7 +2199,6 @@ class CharsetConverter {
 	 * @param string $charset The charset
 	 * @param integer $len Length (in characters)
 	 * @return string the substring
-	 * @todo Define visibility
 	 */
 	public function euc_substr($str, $start, $charset, $len = NULL) {
 		$byte_start = $this->euc_char2byte_pos($str, $start, $charset);
@@ -2259,7 +2227,6 @@ class CharsetConverter {
 	 * @param string $charset The charset
 	 * @return integer The number of characters
 	 * @see strlen()
-	 * @todo Define visibility
 	 */
 	public function euc_strlen($str, $charset) {
 		$sjis = $charset == 'shift_jis';
@@ -2287,7 +2254,6 @@ class CharsetConverter {
 	 * @param integer $pos Character position (negative values start from the end)
 	 * @param string $charset The charset
 	 * @return integer Byte position
-	 * @todo Define visibility
 	 */
 	public function euc_char2byte_pos($str, $pos, $charset) {
 		$sjis = $charset == 'shift_jis';
@@ -2334,7 +2300,6 @@ class CharsetConverter {
 	 * @param string $mode Mode: 'case' (case folding) or 'ascii' (ASCII transliteration)
 	 * @param string $opt 'case': conversion 'toLower' or 'toUpper'
 	 * @return string The converted string
-	 * @todo Define visibility
 	 */
 	public function euc_char_mapping($str, $charset, $mode, $opt = '') {
 		switch ($mode) {

@@ -48,9 +48,9 @@ CREATE TABLE fe_groups (
 	hidden tinyint(3) unsigned DEFAULT '0' NOT NULL,
 	lockToDomain varchar(50) DEFAULT '' NOT NULL,
 	deleted tinyint(3) unsigned DEFAULT '0' NOT NULL,
-	description text,
-	subgroup tinytext,
-	TSconfig text,
+	description text NOT NULL,
+	subgroup tinytext NOT NULL,
+	TSconfig text NOT NULL,
 
 	PRIMARY KEY (uid),
 	KEY parent (pid)
@@ -287,7 +287,7 @@ CREATE TABLE tt_content (
 	spaceBefore smallint(5) unsigned DEFAULT '0' NOT NULL,
 	spaceAfter smallint(5) unsigned DEFAULT '0' NOT NULL,
 	fe_group varchar(100) DEFAULT '0' NOT NULL,
-	header_link varchar(255) DEFAULT '' NOT NULL,
+	header_link varchar(1024) DEFAULT '' NOT NULL,
 	imagecaption_position varchar(6) DEFAULT '' NOT NULL,
 	image_link text,
 	image_zoom tinyint(3) unsigned DEFAULT '0' NOT NULL,

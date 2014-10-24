@@ -1,0 +1,101 @@
+/**
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+/* - - - - - - - - - - - - - - - - - - - - -
+Module menu
+- - - - - - - - - - - - - - - - - - - - - */
+
+#typo3-module-menu {
+	background: @navbar-inverse-bg;
+	color: @navbar-inverse-color;
+	padding-bottom: ceil(@navbar-padding-vertical * 2);
+
+	.x-panel-body {
+		background-color: transparent;
+	}
+
+	#typo3-menu {
+	    margin-top: 18px;
+		.list-unstyled;
+
+		> li {
+			margin-bottom: 1px;
+
+			div.modgroup {
+				.text-nowrap;
+				background-color: @navbar-inverse-link-disabled-bg;
+				color: @navbar-inverse-link-disabled-color;
+				cursor: pointer;
+				font-weight: bold;
+				text-transform: uppercase;
+				font-size: 0.9em;
+				padding: @navbar-padding-vertical @navbar-padding-horizontal;
+			}
+
+			ul {
+				.list-unstyled;
+
+				li {
+					a {
+						.text-nowrap;
+						color: @navbar-inverse-link-color;
+						padding: @navbar-padding-vertical @navbar-padding-horizontal;
+						position: relative;
+						display: block;
+						text-decoration: none;
+						overflow: hidden;
+
+						&:hover {
+							background-color: @navbar-inverse-link-hover-bg;
+							color: @navbar-inverse-link-hover-color;
+						}
+
+						span.submodule-icon {
+							position: absolute;
+						}
+
+						span.submodule-label {
+							display: block;
+							margin-left: 26px;
+						}
+
+					}
+
+					&.highlighted {
+						font-weight: bold;
+
+						a {
+							background-color: @navbar-inverse-link-active-bg;
+							color: @navbar-inverse-link-active-color;
+
+							&:after {
+								content: " ";
+								line-height: 0;
+								position: absolute;
+								right: 0;
+								top: 8px;
+								border: 8px solid transparent;
+								border-right: 8px solid white;
+							}
+						}
+					}
+				}
+			}
+
+			img {
+				max-width: 16px;
+				max-height: 16px;
+			}
+		}
+	}
+}

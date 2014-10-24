@@ -1469,6 +1469,43 @@ class BackendUtility {
 	}
 
 	/**
+	 * Resolves file references for a given record.
+	 *
+	 * @param string $tableName Name of the table of the record
+	 * @param string $fieldName Name of the field of the record
+	 * @param array $element Record data
+	 * @param NULL|int $workspaceId Workspace to fetch data for
+	 * @return NULL|array|\TYPO3\CMS\Core\Resource\FileReference[]
+	 */
+	static public function resolveFileReferences($tableName, $fieldName, $element, $workspaceId = NULL) {
+		if (empty($GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config'])) {
+			return NULL;
+		}
+		$configuration = $GLOBALS['TCA'][$tableName]['columns'][$fieldName]['config'];
+		if (empty($configuration['type']) || $configuration['type'] !== 'inline'
+			|| empty($configuration['foreign_table']) || $configuration['foreign_table'] !== 'sys_file_reference') {
+			return NULL;
+		}
+
+		$fileReferences = array();
+		/** @var $relationHandler \TYPO3\CMS\Core\Database\RelationHandler */
+		$relationHandler = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Database\\RelationHandler');
+		if ($workspaceId !== NULL) {
+			$relationHandler->setWorkspaceId($workspaceId);
+		}
+		$relationHandler->start($element[$fieldName], $configuration['foreign_table'], $configuration['MM'], $element['uid'], $tableName, $configuration);
+		$relationHandler->processDeletePlaceholder();
+		$referenceUids = $relationHandler->tableArray[$configuration['foreign_table']];
+
+		foreach ($referenceUids as $referenceUid) {
+			$fileReference = ResourceFactory::getInstance()->getFileReferenceObject($referenceUid, array(), ($workspaceId === 0));
+			$fileReferences[$fileReference->getUid()] = $fileReference;
+		}
+
+		return $fileReferences;
+	}
+
+	/**
 	 * Returns a linked image-tag for thumbnail(s)/fileicons/truetype-font-previews from a database row with a list of image files in a field
 	 * All $GLOBALS['TYPO3_CONF_VARS']['GFX']['imagefile_ext'] extension are made to thumbnails + ttf file (renders font-example)
 	 * Thumbsnails are linked to the show_item.php script which will display further details.
@@ -1486,7 +1523,6 @@ class BackendUtility {
 	 * @return string Thumbnail image tag.
 	 */
 	static public function thumbCode($row, $table, $field, $backPath, $thumbScript = '', $uploaddir = NULL, $abs = 0, $tparams = '', $size = '', $linkInfoPopup = TRUE) {
-		$tcaConfig = $GLOBALS['TCA'][$table]['columns'][$field]['config'];
 		// Check and parse the size parameter
 		$sizeParts = array(64, 64);
 		if ($size = trim($size)) {
@@ -1496,16 +1532,10 @@ class BackendUtility {
 			}
 		}
 		$thumbData = '';
+		$fileReferences = static::resolveFileReferences($table, $field, $row);
 		// FAL references
-		if ($tcaConfig['type'] === 'inline' && $tcaConfig['foreign_table'] === 'sys_file_reference') {
-			/** @var $relationHandler \TYPO3\CMS\Core\Database\RelationHandler */
-			$relationHandler = GeneralUtility::makeInstance('TYPO3\\CMS\\Core\\Database\\RelationHandler');
-			$relationHandler->start($row[$field], $tcaConfig['foreign_table'], $tcaConfig['MM'], $row['uid'], $table, $tcaConfig);
-			$relationHandler->processDeletePlaceholder();
-			$referenceUids = $relationHandler->tableArray[$tcaConfig['foreign_table']];
-
-			foreach ($referenceUids as $referenceUid) {
-				$fileReferenceObject = ResourceFactory::getInstance()->getFileReferenceObject($referenceUid);
+		if ($fileReferences !== NULL) {
+			foreach ($fileReferences as $fileReferenceObject) {
 				$fileObject = $fileReferenceObject->getOriginalFile();
 
 				if ($fileObject->isMissing()) {
@@ -1664,7 +1694,7 @@ class BackendUtility {
 				$label = self::getRecordPath((int)$row['mount_pid'], $perms_clause, 20);
 			} else {
 				$lRec = self::getRecordWSOL('pages', (int)$row['mount_pid'], 'title');
-				$label = $lRec['title'];
+				$label = $lRec['title'] . ' (id=' . $row['mount_pid'] . ')';
 			}
 			$parts[] = $GLOBALS['LANG']->sL($GLOBALS['TCA']['pages']['columns']['mount_pid']['label']) . ' ' . $label;
 			if ($row['mount_pid_ol']) {
@@ -2077,7 +2107,7 @@ class BackendUtility {
 								$l = $value;
 							} else {
 								$rParts = array();
-								if (isset($theColConf['foreign_field']) && $theColConf['foreign_field'] !== '') {
+								if ($uid && isset($theColConf['foreign_field']) && $theColConf['foreign_field'] !== '') {
 									$records = self::getRecordsByField($theColConf['foreign_table'], $theColConf['foreign_field'], $uid);
 									if (!empty($records)) {
 										foreach ($records as $record) {
@@ -2545,8 +2575,9 @@ class BackendUtility {
 	 * @param string $params Parameters sent along to alt_doc.php. This requires a much more details description which you must seek in Inside TYPO3s documentation of the alt_doc.php API. And example could be '&edit[pages][123] = edit' which will show edit form for page record 123.
 	 * @param string $backPath Must point back to the TYPO3_mainDir directory (where alt_doc.php is)
 	 * @param string $requestUri An optional returnUrl you can set - automatically set to REQUEST_URI.
+	 *
 	 * @return string
-	 * @see template::issueCommand()
+	 * @see \TYPO3\CMS\Backend\Template\DocumentTemplate::issueCommand()
 	 */
 	static public function editOnClick($params, $backPath = '', $requestUri = '') {
 		$retUrl = 'returnUrl=' . ($requestUri == -1 ? '\'+T3_THIS_LOCATION+\'' : rawurlencode(($requestUri ? $requestUri : GeneralUtility::getIndpEnv('REQUEST_URI'))));
@@ -3402,7 +3433,7 @@ class BackendUtility {
 	 * Returns first found domain record "domainName" (without trailing slash) if found in the input $rootLine
 	 *
 	 * @param array $rootLine Root line array
-	 * @return string Domain name, if found.
+	 * @return string|NULL Domain name or NULL
 	 */
 	static public function firstDomainRecord($rootLine) {
 		foreach ($rootLine as $row) {
@@ -3412,6 +3443,7 @@ class BackendUtility {
 				return rtrim($dRecord['domainName'], '/');
 			}
 		}
+		return NULL;
 	}
 
 	/**
@@ -3634,6 +3666,7 @@ class BackendUtility {
 	static public function selectVersionsOfRecord($table, $uid, $fields = '*', $workspace = 0, $includeDeletedRecords = FALSE, $row = NULL) {
 		$realPid = 0;
 		$outputRows = array();
+		$workspace = (int)$workspace;
 		if ($GLOBALS['TCA'][$table] && $GLOBALS['TCA'][$table]['ctrl']['versioningWS']) {
 			if (is_array($row) && !$includeDeletedRecords) {
 				$row['_CURRENT_VERSION'] = TRUE;
@@ -3641,25 +3674,28 @@ class BackendUtility {
 				$outputRows[] = $row;
 			} else {
 				// Select UID version:
-				$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, $table, 'uid=' . (int)$uid . ($includeDeletedRecords ? '' : self::deleteClause($table)));
+				$row = BackendUtility::getRecord($table, $uid, $fields, '', !$includeDeletedRecords);
 				// Add rows to output array:
-				if ($res) {
-					$row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res);
-					if ($row) {
-						$row['_CURRENT_VERSION'] = TRUE;
-						$realPid = $row['pid'];
-						$outputRows[] = $row;
-					}
-					$GLOBALS['TYPO3_DB']->sql_free_result($res);
+				if ($row) {
+					$row['_CURRENT_VERSION'] = TRUE;
+					$realPid = $row['pid'];
+					$outputRows[] = $row;
 				}
 			}
 			// Select all offline versions of record:
-			$res = $GLOBALS['TYPO3_DB']->exec_SELECTquery($fields, $table, 'pid=-1 AND uid<>' . (int)$uid . ' AND t3ver_oid=' . (int)$uid . ($workspace != 0 ? ' AND t3ver_wsid=' . (int)$workspace : '') . ($includeDeletedRecords ? '' : self::deleteClause($table)), '', 't3ver_id DESC');
+			$rows = $GLOBALS['TYPO3_DB']->exec_SELECTgetRows(
+				$fields,
+				$table,
+				'pid=-1 AND uid<>' . (int)$uid . ' AND t3ver_oid=' . (int)$uid
+					. ' AND t3ver_wsid' . ($workspace !== 0 ? ' IN (0,' . (int)$workspace . ')' : '=0')
+					. ($includeDeletedRecords ? '' : self::deleteClause($table)),
+				'',
+				't3ver_id DESC'
+			);
 			// Add rows to output array:
-			while ($row = $GLOBALS['TYPO3_DB']->sql_fetch_assoc($res)) {
-				$outputRows[] = $row;
+			if (is_array($rows)) {
+				$outputRows = array_merge($outputRows, $rows);
 			}
-			$GLOBALS['TYPO3_DB']->sql_free_result($res);
 			// Set real-pid:
 			foreach ($outputRows as $idx => $oRow) {
 				$outputRows[$idx]['_REAL_PID'] = $realPid;
@@ -4019,7 +4055,6 @@ class BackendUtility {
 			$warrantyNote = sprintf($GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xlf:no.warranty'), '<a href="' . TYPO3_URL_LICENSE . '" target="_blank">', '</a>');
 		}
 		$cNotice = '<a href="' . TYPO3_URL_GENERAL . '" target="_blank">' .
-				'<img' . IconUtility::skinImg($GLOBALS['BACK_PATH'], 'gfx/loginlogo_transp.gif', 'width="75" height="24" vspace="2" hspace="4"') . ' alt="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xlf:typo3.logo') . '" align="left" />' .
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xlf:typo3.cms') . $versionNumber . '</a>. ' .
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xlf:copyright') . ' &copy; ' . htmlspecialchars(TYPO3_copyright_year) . ' Kasper Sk&aring;rh&oslash;j. ' .
 				$GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_login.xlf:extension.copyright') . ' ' .

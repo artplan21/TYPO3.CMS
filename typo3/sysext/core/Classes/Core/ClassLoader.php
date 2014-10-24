@@ -28,6 +28,11 @@ class ClassLoader {
 	const VALID_CLASSNAME_PATTERN = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9\\\\_\x7f-\xff]*$/';
 
 	/**
+	 * @var ApplicationContext
+	 */
+	protected $context;
+
+	/**
 	 * @var ClassAliasMap
 	 */
 	protected $classAliasMap;
@@ -93,6 +98,7 @@ class ClassLoader {
 	 * @param ApplicationContext $context
 	 */
 	public function __construct(ApplicationContext $context) {
+		$this->context = $context;
 		$this->classesCache = new Cache\Frontend\StringFrontend('cache_classes', new Cache\Backend\TransientMemoryBackend($context));
 	}
 
@@ -171,9 +177,11 @@ class ClassLoader {
 		// )
 		$loadingSuccessful = FALSE;
 		if (!empty($classLoadingInformation)) {
-			// The call to class_exists fixes a rare case when early instances need to be aliased
+			// The call to class_exists/interface_exists fixes a rare case when early instances need to be aliased
 			// but PHP fails to recognize the real path of the class. See #55904
-			$loadingSuccessful = class_exists($classLoadingInformation[1], FALSE) || (bool)require_once $classLoadingInformation[0];
+			$loadingSuccessful = class_exists($classLoadingInformation[1], FALSE)
+				|| interface_exists($classLoadingInformation[1], FALSE)
+				|| (bool)require_once $classLoadingInformation[0];
 		}
 		if ($loadingSuccessful && count($classLoadingInformation) > 2) {
 			$originalClassName = $classLoadingInformation[1];
@@ -241,8 +249,10 @@ class ClassLoader {
 					$this->isEarlyCache ? array('early') : array()
 				);
 			} elseif (!$this->isEarlyCache) {
-				// Cache that the class is unknown
-				$this->classesCache->set($cacheEntryIdentifier, '');
+				if ($this->context->isProduction()) {
+					// Cache that the class is unknown
+					$this->classesCache->set($cacheEntryIdentifier, '');
+				}
 			}
 		}
 

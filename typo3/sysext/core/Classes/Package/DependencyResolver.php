@@ -128,6 +128,7 @@ class DependencyResolver {
 	 */
 	protected function buildDependencyGraphForPackages(array $packageStatesConfiguration, array $packageKeys) {
 		// Initialize the dependencies with FALSE
+		sort($packageKeys);
 		$dependencyGraph = array_fill_keys($packageKeys, array_fill_keys($packageKeys, FALSE));
 		foreach ($packageKeys as $packageKey) {
 			if (!isset($packageStatesConfiguration[$packageKey]['dependencies'])) {
@@ -137,7 +138,7 @@ class DependencyResolver {
 			foreach ($dependentPackageKeys as $dependentPackageKey) {
 				if (!in_array($dependentPackageKey, $packageKeys)) {
 					throw new \UnexpectedValueException(
-						'The package "' . $packageKey .'" depends on "'
+						'The package "' . $packageKey . '" depends on "'
 						. $dependentPackageKey . '" which is not present in the system.',
 						1382276561);
 				}

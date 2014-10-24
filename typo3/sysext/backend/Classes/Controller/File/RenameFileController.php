@@ -29,20 +29,19 @@ class RenameFileController {
 	 * Document template object
 	 *
 	 * @var \TYPO3\CMS\Backend\Template\DocumentTemplate
-	 * @todo Define visibility
 	 */
 	public $doc;
 
 	// Name of the filemount
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $title;
 
 	// Internal, static (GPVar):
 	// Set with the target path inputted in &target
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $target;
 
@@ -55,14 +54,14 @@ class RenameFileController {
 
 	// Return URL of list module.
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $returnUrl;
 
 	// Internal, dynamic:
 	// Accumulating content
 	/**
-	 * @todo Define visibility
+	 * @var string
 	 */
 	public $content;
 
@@ -154,7 +153,7 @@ class RenameFileController {
 				<input type="submit" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xlf:file_rename.php.submit', TRUE) . '" />
 				<input type="submit" value="' . $GLOBALS['LANG']->sL('LLL:EXT:lang/locallang_core.xlf:labels.cancel', TRUE) . '" onclick="backToList(); return false;" />
 				<input type="hidden" name="redirect" value="' . htmlspecialchars($this->returnUrl) . '" />
-				'. \TYPO3\CMS\Backend\Form\FormEngine::getHiddenTokenField('tceAction') . '
+				' . \TYPO3\CMS\Backend\Form\FormEngine::getHiddenTokenField('tceAction') . '
 			</div>
 		';
 		$code .= '</form>';

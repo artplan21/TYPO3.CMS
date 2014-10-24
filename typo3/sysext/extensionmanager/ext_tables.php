@@ -8,7 +8,7 @@ if (TYPO3_MODE === 'BE') {
 		'extensionmanager', '', array(
 			'List' => 'index,unresolvedDependencies,ter,showAllVersions,distributions',
 			'Action' => 'toggleExtensionInstallationState,installExtensionWithoutSystemDependencyCheck,removeExtension,downloadExtensionZip,downloadExtensionData',
-			'Configuration' => 'showConfigurationForm,save',
+			'Configuration' => 'showConfigurationForm,save,saveAndClose',
 			'Download' => 'checkDependencies,installFromTer,installExtensionWithoutSystemDependencyCheck,installDistribution,updateExtension,updateCommentForUpdatableVersions',
 			'UpdateScript' => 'show',
 			'UpdateFromTer' => 'updateExtensionListFromTer',
@@ -17,7 +17,7 @@ if (TYPO3_MODE === 'BE') {
 		),
 		array(
 			'access' => 'admin',
-			'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Icons/module.png',
+			'icon' => 'EXT:' . $_EXTKEY . '/Resources/Public/Icons/module-extensionmanager.png',
 			'labels' => 'LLL:EXT:' . $_EXTKEY . '/Resources/Private/Language/locallang_mod.xlf',
 		)
 	);

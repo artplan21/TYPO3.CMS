@@ -77,8 +77,8 @@ class SystemEnvironmentBuilder {
 	 */
 	static protected function defineBaseConstants() {
 		// This version, branch and copyright
-		define('TYPO3_version', '6.3-dev');
-		define('TYPO3_branch', '6.3');
+		define('TYPO3_version', '7.0-dev');
+		define('TYPO3_branch', '7.0');
 		define('TYPO3_copyright_year', '1998-2014');
 
 		// TYPO3 external links
@@ -167,9 +167,6 @@ class SystemEnvironmentBuilder {
 		// Absolute path to the typo3conf directory with trailing slash
 		// Example "/var/www/instance-name/htdocs/typo3conf/"
 		define('PATH_typo3conf', PATH_site . 'typo3conf/');
-		// Absolute path to the tslib directory with trailing slash
-		// Example "/var/www/instance-name/htdocs/typo3/sysext/cms/tslib/"
-		define('PATH_tslib', PATH_typo3 . 'sysext/cms/tslib/');
 	}
 
 	/**
@@ -181,8 +178,8 @@ class SystemEnvironmentBuilder {
 		if (!is_file(PATH_thisScript)) {
 			die('Unable to determine path to entry script.');
 		}
-		if (!is_dir(PATH_tslib)) {
-			die('Calculated absolute path to tslib directory does not exist.');
+		if (!is_dir(PATH_typo3 . 'sysext')) {
+			die('Calculated absolute path to typo3/sysext directory does not exist.');
 		}
 	}
 
@@ -381,7 +378,7 @@ class SystemEnvironmentBuilder {
 		// Find out if path is relative or not
 		$isRelativePath = FALSE;
 		if (TYPO3_OS === 'WIN') {
-			if (!preg_match('/^([A-Z]:)?\\\\/', $scriptPath)) {
+			if (!preg_match('/^([a-zA-Z]:)?\\\\/', $scriptPath)) {
 				$isRelativePath = TRUE;
 			}
 		} else {

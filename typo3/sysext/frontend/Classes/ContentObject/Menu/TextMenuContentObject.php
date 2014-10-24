@@ -27,7 +27,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 *
 	 * @return void
 	 * @see AbstractMenuContentObject::procesItemStates()
-	 * @todo Define visibility
 	 */
 	public function generate() {
 		$splitCount = count($this->menuArr);
@@ -47,7 +46,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * An instance of ContentObjectRenderer is also made and for each menu item rendered it is loaded with the record for that page so that any stdWrap properties that applies will have the current menu items record available.
 	 *
 	 * @return string The HTML for the menu (returns result through $this->extProc_finish(); )
-	 * @todo Define visibility
 	 */
 	public function writeMenu() {
 		if (is_array($this->result) && count($this->result)) {
@@ -148,7 +146,7 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 				$this->I['theItem'] = $this->extProc_beforeAllWrap($this->I['theItem'], $key);
 				// allWrap:
 				$allWrap = isset($this->I['val']['allWrap.']) ? $this->WMcObj->stdWrap($this->I['val']['allWrap'], $this->I['val']['allWrap.']) : $this->I['val']['allWrap'];
-				$this->I['theItem'] = $this->tmpl->wrap($this->I['theItem'], $allWrap);
+				$this->I['theItem'] = $this->WMcObj->wrap($this->I['theItem'], $allWrap);
 				if ($this->I['val']['subst_elementUid']) {
 					$this->I['theItem'] = str_replace('{elementUid}', $this->I['uid'], $this->I['theItem']);
 				}
@@ -168,7 +166,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 *
 	 * @param string $pref Can be "before" or "after" and determines which kind of image to create (basically this is the prefix of the TypoScript properties that are read from the ->I['val'] array
 	 * @return string The resulting HTML of the image, if any.
-	 * @todo Define visibility
 	 */
 	public function getBeforeAfter($pref) {
 		$res = '';
@@ -189,7 +186,7 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 		}
 		$processedPref = isset($this->I['val'][$pref . '.']) ? $this->WMcObj->stdWrap($this->I['val'][$pref], $this->I['val'][$pref . '.']) : $this->I['val'][$pref];
 		if (isset($this->I['val'][$pref . 'Wrap'])) {
-			return $this->tmpl->wrap($res . $processedPref, $this->I['val'][$pref . 'Wrap']);
+			return $this->WMcObj->wrap($res . $processedPref, $this->I['val'][$pref . 'Wrap']);
 		} else {
 			return $res . $processedPref;
 		}
@@ -202,7 +199,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_init() {
 
@@ -215,7 +211,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_beforeLinking($key) {
 
@@ -229,7 +224,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * @return void
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_afterLinking($key) {
 		// Add part to the accumulated result + fetch submenus
@@ -237,7 +231,7 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 			$this->I['theItem'] .= $this->subMenu($this->I['uid'], $this->WMsubmenuObjSuffixes[$key]['sOSuffix']);
 		}
 		$part = isset($this->I['val']['wrapItemAndSub.']) ? $this->WMcObj->stdWrap($this->I['val']['wrapItemAndSub'], $this->I['val']['wrapItemAndSub.']) : $this->I['val']['wrapItemAndSub'];
-		$this->WMresult .= $part ? $this->tmpl->wrap($this->I['theItem'], $part) : $this->I['theItem'];
+		$this->WMresult .= $part ? $this->WMcObj->wrap($this->I['theItem'], $part) : $this->I['theItem'];
 	}
 
 	/**
@@ -248,7 +242,6 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * @return string The modified version of $item, going back into $this->I['theItem']
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_beforeAllWrap($item, $key) {
 		return $item;
@@ -260,14 +253,13 @@ class TextMenuContentObject extends \TYPO3\CMS\Frontend\ContentObject\Menu\Abstr
 	 * @return string The total menu content should be returned by this function
 	 * @access private
 	 * @see writeMenu()
-	 * @todo Define visibility
 	 */
 	public function extProc_finish() {
 		// stdWrap:
 		if (is_array($this->mconf['stdWrap.'])) {
 			$this->WMresult = $this->WMcObj->stdWrap($this->WMresult, $this->mconf['stdWrap.']);
 		}
-		return $this->tmpl->wrap($this->WMresult, $this->mconf['wrap']) . $this->WMextraScript;
+		return $this->WMcObj->wrap($this->WMresult, $this->mconf['wrap']) . $this->WMextraScript;
 	}
 
 }

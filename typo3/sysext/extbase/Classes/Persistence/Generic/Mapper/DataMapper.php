@@ -177,11 +177,15 @@ class DataMapper implements \TYPO3\CMS\Core\SingletonInterface {
 		$object->_setProperty('uid', (int)$row['uid']);
 		$object->_setProperty('pid', (int)$row['pid']);
 		$object->_setProperty('_localizedUid', (int)$row['uid']);
+		$object->_setProperty('_versionedUid', (int)$row['uid']);
 		if ($dataMap->getLanguageIdColumnName() !== NULL) {
 			$object->_setProperty('_languageUid', (int)$row[$dataMap->getLanguageIdColumnName()]);
 			if (isset($row['_LOCALIZED_UID'])) {
 				$object->_setProperty('_localizedUid', (int)$row['_LOCALIZED_UID']);
 			}
+		}
+		if (!empty($row['_ORIG_uid']) && !empty($GLOBALS['TCA'][$dataMap->getTableName()]['ctrl']['versioningWS'])) {
+			$object->_setProperty('_versionedUid', (int)$row['_ORIG_uid']);
 		}
 		$properties = $object->_getProperties();
 		foreach ($properties as $propertyName => $propertyValue) {
@@ -643,10 +647,12 @@ class DataMapper implements \TYPO3\CMS\Core\SingletonInterface {
 			$parameter = implode(',', $plainValueArray);
 		} elseif ($input instanceof DomainObjectInterface) {
 			$parameter = (int)$input->getUid();
-		} elseif (TypeHandlingUtility::isCoreType($input)) {
-			$parameter = $this->getPlainStringValue($input, $parseStringValueCallback, $parseStringValueCallbackParameters);
 		} elseif (is_object($input)) {
-			throw new UnexpectedTypeException('An object of class "' . get_class($input) . '" could not be converted to a plain value.', 1274799934);
+			if (TypeHandlingUtility::isCoreType($input)) {
+				$parameter = $this->getPlainStringValue($input, $parseStringValueCallback, $parseStringValueCallbackParameters);
+			} else {
+				throw new UnexpectedTypeException('An object of class "' . get_class($input) . '" could not be converted to a plain value.', 1274799934);
+			}
 		} else {
 			$parameter = $this->getPlainStringValue($input, $parseStringValueCallback, $parseStringValueCallbackParameters);
 		}
